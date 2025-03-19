@@ -1,0 +1,12 @@
+{
+  "name": "calculator-theme-manager",
+  "version": "1.0.0",
+  "description": "计算器皮肤主题管理系统",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+} 

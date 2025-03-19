@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算器皮肤主题管理系统</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- 加载指示器 -->
+    <div id="loading-indicator">
+        <div class="loader"></div>
+    </div>
+    
+    <!-- 侧边栏切换按钮（移动端显示） -->
+    <button id="toggle-sidebar" class="toggle-sidebar">☰</button>
+    
+    <!-- 页面容器 -->
+    <div class="page-container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">主题管理系统</div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-target="theme-list-page">
+                        <i>📋</i> 主题管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-target="theme-create-page" id="theme-create-link">
+                        <i>➕</i> 主题创建
+                    </a>
+                    <ul class="submenu" id="theme-create-submenu">
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-step="basic-info-step">基本信息</a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-step="global-settings-step">全局设置</a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-step="top-nav-step">顶部导航区</a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-step="result-area-step">计算结果区设置</a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-step="button-skins-step">按钮皮肤设置</a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-step="tabbar-settings-step">TabBar设置</a>
+                        </li>
+                        <li class="submenu-item">
+                            <a href="#" class="submenu-link" data-step="summary-step">确认提交</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 主要内容 -->
+        <div class="main-content-wrapper">
+            <!-- 头部 -->
+            <header>
+                <div class="container header-container">
+                    <div class="logo">计算器皮肤主题管理系统</div>
+                    <div class="user-info">
+                        <button id="logout-button" class="btn">退出登录</button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 主要内容区域 -->
+            <div class="container">
+                <!-- 消息显示区域 -->
+                <div id="message" class="message"></div>
+                
+                <!-- 主题列表页面 -->
+                <div id="theme-list-page" class="page-content">
+                    <div class="main-content">
+                        <!-- 工具栏 -->
+                        <div class="toolbar">
+                            <form id="search-form" class="search-form">
+                                <input type="text" id="search-input" placeholder="搜索主题名称或创建者">
+                                <select id="filter-paid">
+                                    <option value="">全部主题</option>
+                                    <option value="true">付费主题</option>
+                                    <option value="false">免费主题</option>
+                                </select>
+                                <button type="submit" class="btn">搜索</button>
+                                <button type="button" id="reset-search" class="btn">重置</button>
+                            </form>
+                            
+                            <div class="action-buttons">
+                                <button id="new-theme-button" class="btn">创建新主题</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 主题列表 -->
+                        <div id="theme-list" class="theme-list">
+                            <!-- 主题卡片将通过JavaScript动态添加 -->
+                            <div class="no-themes">加载中...</div>
+                        </div>
+                        
+                        <!-- 分页 -->
+                        <div id="pagination" class="pagination"></div>
+                    </div>
+                </div>
+                
+                <!-- 主题创建页面 -->
+                <div id="theme-create-page" class="page-content" style="display: none;">
+                    <div class="main-content">
+                        <h2>创建新主题</h2>
+                        
+                        <!-- 步骤导航 -->
+                        <div class="steps-nav">
+                            <div class="step-link active" data-step="basic-info-step">1. 基本信息</div>
+                            <div class="step-link" data-step="global-settings-step">2. 全局设置</div>
+                            <div class="step-link" data-step="top-nav-step">3. 顶部导航区</div>
+                            <div class="step-link" data-step="result-area-step">4. 计算结果区</div>
+                            <div class="step-link" data-step="button-skins-step">5. 按钮皮肤</div>
+                            <div class="step-link" data-step="tabbar-settings-step">6. TabBar设置</div>
+                            <div class="step-link" data-step="summary-step">7. 确认提交</div>
+                        </div>
+                        
+                        <!-- 加载中 -->
+                        <div id="step-loading" style="display: none;">
+                            <div class="loader"></div>
+                        </div>
+                        
+                        <form id="theme-creation-form">
+                            <!-- 隐藏字段：主题ID，编辑时使用 -->
+                            <input type="hidden" id="theme-id" name="theme_id">
+                            <!-- 隐藏字段：用于背景类型选择 -->
+                            <input type="hidden" id="has_global_background_image" name="has_global_background_image" value="false">
+                            <input type="hidden" id="result_use_image" name="result_use_image" value="false">
+                            <input type="hidden" id="tabbar_use_background_image" name="tabbar_use_background_image" value="false">
+                            
+                            <!-- 步骤1: 基本信息 -->
+                            <div id="basic-info-step" class="step-content active">
+                                <div class="form-group">
+                                    <label for="skin_name">主题名称 *</label>
+                                    <input type="text" id="skin_name" name="skin_name" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="version">版本号</label>
+                                    <input type="text" id="version" name="version" value="1.0">
+                                </div>
+                                
+                                <div class="form-group checkbox-group">
+                                    <input type="checkbox" id="is_paid" name="is_paid">
+                                    <label for="is_paid">付费主题</label>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="detail_image">详情图片</label>
+                                    <input type="file" id="detail_image" name="detail_image" accept="image/*">
+                                    <img id="detail-image-preview" class="image-preview">
+                                </div>
+                                
+                                <div class="step-buttons">
+                                    <button type="button" class="btn cancel-btn" id="cancel-theme-button">取消</button>
+                                    <button type="button" class="btn next-step" data-next="global-settings-step">保存并继续</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 步骤2: 全局设置 -->
+                            <div id="global-settings-step" class="step-content">
+                                <div class="form-group">
+                                    <label>全局背景设置</label>
+                                    <div class="radio-group">
+                                        <div class="radio-item">
+                                            <input type="radio" id="global_bg_color_option" name="global_bg_type" value="color" checked>
+                                            <label for="global_bg_color_option">使用背景颜色</label>
+                                        </div>
+                                        <div class="radio-item">
+                                            <input type="radio" id="global_bg_image_option" name="global_bg_type" value="image">
+                                            <label for="global_bg_image_option">使用背景图片</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group" id="global_bg_color_group">
+                                    <label for="global_background_color">全局背景颜色</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="global_background_color" name="global_background_color" value="#FFFFFF">
+                                        <input type="text" id="global_background_color_text" placeholder="#FFFFFF" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group" id="global_bg_image_group" style="display: none;">
+                                    <label for="global_background_image">全局背景图片</label>
+                                    <input type="file" id="global_background_image" name="global_background_image" accept="image/*">
+                                    <img id="global-background-preview" class="image-preview">
+                                </div>
+                                
+                                <div class="form-group checkbox-group">
+                                    <input type="checkbox" id="use_system_font" name="use_system_font" checked>
+                                    <label for="use_system_font">使用系统字体</label>
+                                </div>
+                                
+                                <div class="step-buttons">
+                                    <button type="button" class="btn prev-step" data-prev="basic-info-step">上一步</button>
+                                    <button type="button" class="btn next-step" data-next="top-nav-step">保存并继续</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 步骤3: 顶部导航区 -->
+                            <div id="top-nav-step" class="step-content">
+                                <div class="form-group">
+                                    <label for="top_nav_selected_color">导航选中颜色</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="top_nav_selected_color" name="top_nav_selected_color" value="#4a6cf7">
+                                        <input type="text" id="top_nav_selected_color_text" placeholder="#4A6CF7" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="top_nav_unselected_color">导航未选中颜色</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="top_nav_unselected_color" name="top_nav_unselected_color" value="#6c757d">
+                                        <input type="text" id="top_nav_unselected_color_text" placeholder="#6C757D" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="top_nav_text_selected_color">文字选中颜色</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="top_nav_text_selected_color" name="top_nav_text_selected_color" value="#FFFFFF">
+                                        <input type="text" id="top_nav_text_selected_color_text" placeholder="#FFFFFF" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="top_nav_text_unselected_color">文字未选中颜色</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="top_nav_text_unselected_color" name="top_nav_text_unselected_color" value="#CCCCCC">
+                                        <input type="text" id="top_nav_text_unselected_color_text" placeholder="#CCCCCC" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="step-buttons">
+                                    <button type="button" class="btn prev-step" data-prev="global-settings-step">上一步</button>
+                                    <button type="button" class="btn next-step" data-next="result-area-step">保存并继续</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 步骤4: 计算结果区设置 -->
+                            <div id="result-area-step" class="step-content">
+                                <div class="form-group">
+                                    <label>结果区域背景设置</label>
+                                    <div class="radio-group">
+                                        <div class="radio-item">
+                                            <input type="radio" id="result_bg_color_option" name="result_bg_type" value="color" checked>
+                                            <label for="result_bg_color_option">使用背景颜色</label>
+                                        </div>
+                                        <div class="radio-item">
+                                            <input type="radio" id="result_bg_image_option" name="result_bg_type" value="image">
+                                            <label for="result_bg_image_option">使用背景图片</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group" id="result_bg_color_group">
+                                    <label for="result_background_color">结果区域背景颜色 *</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="result_background_color" name="result_background_color" value="#F5F5F5" required>
+                                        <input type="text" id="result_background_color_text" placeholder="#F5F5F5" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group" id="result_bg_image_group" style="display: none;">
+                                    <label for="result_background_image">结果区域背景图片</label>
+                                    <input type="file" id="result_background_image" name="result_background_image" accept="image/*">
+                                    <img id="result-background-preview" class="image-preview">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="result_font_color">结果字体颜色</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="result_font_color" name="result_font_color" value="#000000">
+                                        <input type="text" id="result_font_color_text" placeholder="#000000" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="result_font_size">结果字体大小</label>
+                                    <input type="number" id="result_font_size" name="result_font_size" value="24" min="12" max="48">
+                                </div>
+                                
+                                <div class="step-buttons">
+                                    <button type="button" class="btn prev-step" data-prev="top-nav-step">上一步</button>
+                                    <button type="button" class="btn next-step" data-next="button-skins-step">保存并继续</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 步骤5: 按钮皮肤设置 -->
+                            <div id="button-skins-step" class="step-content">
+                                <!-- 按钮类型导航 -->
+                                <div class="button-types-nav">
+                                    <div class="button-type-link active" data-button-type="button-type-a">A类 - 功能按钮</div>
+                                    <div class="button-type-link" data-button-type="button-type-b">B类 - 运算符按钮</div>
+                                    <div class="button-type-link" data-button-type="button-type-c">C类 - 数字按钮</div>
+                                    <div class="button-type-link" data-button-type="button-type-d">D类 - 等号按钮</div>
+                                    <div class="button-type-link" data-button-type="button-type-e">E类 - 科学功能按钮</div>
+                                    <div class="button-type-link" data-button-type="button-type-f">F类 - 科学计算器功能按钮</div>
+                                    <div class="button-type-link" data-button-type="button-type-g">G类 - 科学计算器运算符按钮</div>
+                                    <div class="button-type-link" data-button-type="button-type-h">H类 - 科学计算器数字按钮</div>
+                                    <div class="button-type-link" data-button-type="button-type-i">I类 - 科学计算器等号按钮</div>
+                                </div>
+                                
+                                <!-- A类按钮设置（默认显示） -->
+                                <div id="button-type-a-settings" class="button-type-settings">
+                                    <h3>A类功能按钮(AC, ±, %)</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_A_use_image" name="button_TYPE_A_use_image">
+                                        <label for="button_TYPE_A_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_A_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_A_pressed_image" name="button_TYPE_A_pressed_image" accept="image/*">
+                                        <img id="button-a-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_A_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_A_released_image" name="button_TYPE_A_released_image" accept="image/*">
+                                        <img id="button-a-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_A_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_A_pressed_color" name="button_TYPE_A_pressed_color" value="#D0D0D0">
+                                            <input type="text" id="button_TYPE_A_pressed_color_text" placeholder="#D0D0D0" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_A_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_A_released_color" name="button_TYPE_A_released_color" value="#E0E0E0">
+                                            <input type="text" id="button_TYPE_A_released_color_text" placeholder="#E0E0E0" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_A_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_A_font_color" name="button_TYPE_A_font_color" value="#000000">
+                                            <input type="text" id="button_TYPE_A_font_color_text" placeholder="#000000" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_A_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_A_font_size" name="button_TYPE_A_font_size" value="18" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_A">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_A" name="sound_TYPE_A" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-a-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-a" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- B类按钮设置 -->
+                                <div id="button-type-b-settings" class="button-type-settings">
+                                    <h3>B类运算符按钮(÷, ×, -, +)</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_B_use_image" name="button_TYPE_B_use_image">
+                                        <label for="button_TYPE_B_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_B_pressed_image" name="button_TYPE_B_pressed_image" accept="image/*">
+                                        <img id="button-b-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_B_released_image" name="button_TYPE_B_released_image" accept="image/*">
+                                        <img id="button-b-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_B_pressed_color" name="button_TYPE_B_pressed_color" value="#4287f5">
+                                            <input type="text" id="button_TYPE_B_pressed_color_text" placeholder="#4287f5" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_B_released_color" name="button_TYPE_B_released_color" value="#4a9af5">
+                                            <input type="text" id="button_TYPE_B_released_color_text" placeholder="#4a9af5" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_B_font_color" name="button_TYPE_B_font_color" value="#FFFFFF">
+                                            <input type="text" id="button_TYPE_B_font_color_text" placeholder="#FFFFFF" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_B_font_size" name="button_TYPE_B_font_size" value="18" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_B">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_B" name="sound_TYPE_B" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-b-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-b" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- C类按钮设置 -->
+                                <div id="button-type-c-settings" class="button-type-settings">
+                                    <h3>C类数字按钮(0-9, .)</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_C_use_image" name="button_TYPE_C_use_image">
+                                        <label for="button_TYPE_C_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_C_pressed_image" name="button_TYPE_C_pressed_image" accept="image/*">
+                                        <img id="button-c-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_C_released_image" name="button_TYPE_C_released_image" accept="image/*">
+                                        <img id="button-c-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_C_pressed_color" name="button_TYPE_C_pressed_color" value="#E8E8E8">
+                                            <input type="text" id="button_TYPE_C_pressed_color_text" placeholder="#E8E8E8" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_C_released_color" name="button_TYPE_C_released_color" value="#F8F8F8">
+                                            <input type="text" id="button_TYPE_C_released_color_text" placeholder="#F8F8F8" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_C_font_color" name="button_TYPE_C_font_color" value="#000000">
+                                            <input type="text" id="button_TYPE_C_font_color_text" placeholder="#000000" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_C_font_size" name="button_TYPE_C_font_size" value="18" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_C">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_C" name="sound_TYPE_C" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-c-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-c" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- D类按钮设置 -->
+                                <div id="button-type-d-settings" class="button-type-settings">
+                                    <h3>D类等号按钮(=)</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_D_use_image" name="button_TYPE_D_use_image">
+                                        <label for="button_TYPE_D_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_D_pressed_image" name="button_TYPE_D_pressed_image" accept="image/*">
+                                        <img id="button-d-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_D_released_image" name="button_TYPE_D_released_image" accept="image/*">
+                                        <img id="button-d-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_D_pressed_color" name="button_TYPE_D_pressed_color" value="#ff9500">
+                                            <input type="text" id="button_TYPE_D_pressed_color_text" placeholder="#ff9500" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_D_released_color" name="button_TYPE_D_released_color" value="#ffb444">
+                                            <input type="text" id="button_TYPE_D_released_color_text" placeholder="#ffb444" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_D_font_color" name="button_TYPE_D_font_color" value="#FFFFFF">
+                                            <input type="text" id="button_TYPE_D_font_color_text" placeholder="#FFFFFF" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_D_font_size" name="button_TYPE_D_font_size" value="18" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_D">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_D" name="sound_TYPE_D" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-d-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-d" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- E类按钮设置 -->
+                                <div id="button-type-e-settings" class="button-type-settings">
+                                    <h3>E类科学功能按钮</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_E_use_image" name="button_TYPE_E_use_image">
+                                        <label for="button_TYPE_E_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_E_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_E_pressed_image" name="button_TYPE_E_pressed_image" accept="image/*">
+                                        <img id="button-e-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_E_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_E_released_image" name="button_TYPE_E_released_image" accept="image/*">
+                                        <img id="button-e-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_E_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_E_pressed_color" name="button_TYPE_E_pressed_color" value="#B0B0B0">
+                                            <input type="text" id="button_TYPE_E_pressed_color_text" placeholder="#B0B0B0" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_E_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_E_released_color" name="button_TYPE_E_released_color" value="#C8C8C8">
+                                            <input type="text" id="button_TYPE_E_released_color_text" placeholder="#C8C8C8" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_E_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_E_font_color" name="button_TYPE_E_font_color" value="#000000">
+                                            <input type="text" id="button_TYPE_E_font_color_text" placeholder="#000000" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_E_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_E_font_size" name="button_TYPE_E_font_size" value="16" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_E">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_E" name="sound_TYPE_E" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-e-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-e" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- F类按钮设置 -->
+                                <div id="button-type-f-settings" class="button-type-settings">
+                                    <h3>F类科学计算器功能按钮</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_F_use_image" name="button_TYPE_F_use_image">
+                                        <label for="button_TYPE_F_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_F_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_F_pressed_image" name="button_TYPE_F_pressed_image" accept="image/*">
+                                        <img id="button-f-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_F_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_F_released_image" name="button_TYPE_F_released_image" accept="image/*">
+                                        <img id="button-f-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_F_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_F_pressed_color" name="button_TYPE_F_pressed_color" value="#D0D0D0">
+                                            <input type="text" id="button_TYPE_F_pressed_color_text" placeholder="#D0D0D0" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_F_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_F_released_color" name="button_TYPE_F_released_color" value="#E0E0E0">
+                                            <input type="text" id="button_TYPE_F_released_color_text" placeholder="#E0E0E0" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_F_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_F_font_color" name="button_TYPE_F_font_color" value="#000000">
+                                            <input type="text" id="button_TYPE_F_font_color_text" placeholder="#000000" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_F_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_F_font_size" name="button_TYPE_F_font_size" value="18" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_F">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_F" name="sound_TYPE_F" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-f-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-f" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- G类按钮设置 -->
+                                <div id="button-type-g-settings" class="button-type-settings">
+                                    <h3>G类科学计算器运算符按钮</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_G_use_image" name="button_TYPE_G_use_image">
+                                        <label for="button_TYPE_G_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_G_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_G_pressed_image" name="button_TYPE_G_pressed_image" accept="image/*">
+                                        <img id="button-g-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_G_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_G_released_image" name="button_TYPE_G_released_image" accept="image/*">
+                                        <img id="button-g-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_G_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_G_pressed_color" name="button_TYPE_G_pressed_color" value="#4287f5">
+                                            <input type="text" id="button_TYPE_G_pressed_color_text" placeholder="#4287f5" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_G_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_G_released_color" name="button_TYPE_G_released_color" value="#4a9af5">
+                                            <input type="text" id="button_TYPE_G_released_color_text" placeholder="#4a9af5" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_G_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_G_font_color" name="button_TYPE_G_font_color" value="#FFFFFF">
+                                            <input type="text" id="button_TYPE_G_font_color_text" placeholder="#FFFFFF" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_G_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_G_font_size" name="button_TYPE_G_font_size" value="18" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_G">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_G" name="sound_TYPE_G" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-g-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-g" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- H类按钮设置 -->
+                                <div id="button-type-h-settings" class="button-type-settings">
+                                    <h3>H类科学计算器数字按钮</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_H_use_image" name="button_TYPE_H_use_image">
+                                        <label for="button_TYPE_H_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_H_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_H_pressed_image" name="button_TYPE_H_pressed_image" accept="image/*">
+                                        <img id="button-h-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_H_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_H_released_image" name="button_TYPE_H_released_image" accept="image/*">
+                                        <img id="button-h-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_H_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_H_pressed_color" name="button_TYPE_H_pressed_color" value="#E8E8E8">
+                                            <input type="text" id="button_TYPE_H_pressed_color_text" placeholder="#E8E8E8" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_H_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_H_released_color" name="button_TYPE_H_released_color" value="#F8F8F8">
+                                            <input type="text" id="button_TYPE_H_released_color_text" placeholder="#F8F8F8" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_H_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_H_font_color" name="button_TYPE_H_font_color" value="#000000">
+                                            <input type="text" id="button_TYPE_H_font_color_text" placeholder="#000000" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_H_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_H_font_size" name="button_TYPE_H_font_size" value="18" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_H">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_H" name="sound_TYPE_H" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-h-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-h" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- I类按钮设置 -->
+                                <div id="button-type-i-settings" class="button-type-settings">
+                                    <h3>I类科学计算器等号按钮</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_I_use_image" name="button_TYPE_I_use_image">
+                                        <label for="button_TYPE_I_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_I_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_I_pressed_image" name="button_TYPE_I_pressed_image" accept="image/*">
+                                        <img id="button-i-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_I_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_I_released_image" name="button_TYPE_I_released_image" accept="image/*">
+                                        <img id="button-i-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_I_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_I_pressed_color" name="button_TYPE_I_pressed_color" value="#ff9500">
+                                            <input type="text" id="button_TYPE_I_pressed_color_text" placeholder="#ff9500" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_I_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_I_released_color" name="button_TYPE_I_released_color" value="#ffb444">
+                                            <input type="text" id="button_TYPE_I_released_color_text" placeholder="#ffb444" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_I_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_I_font_color" name="button_TYPE_I_font_color" value="#FFFFFF">
+                                            <input type="text" id="button_TYPE_I_font_color_text" placeholder="#FFFFFF" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_I_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_I_font_size" name="button_TYPE_I_font_size" value="18" min="12" max="36">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="sound_TYPE_I">按钮音效</label>
+                                        <input type="file" id="sound_TYPE_I" name="sound_TYPE_I" accept="audio/*">
+                                        <div class="sound-preview">
+                                            <audio id="sound-i-preview" class="sound-player" controls></audio>
+                                            <button type="button" id="clear-sound-i" class="clear-sound">清除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="step-buttons">
+                                    <button type="button" class="btn prev-step" data-prev="result-area-step">上一步</button>
+                                    <button type="button" class="btn next-step" data-next="tabbar-settings-step">保存并继续</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 步骤6: TabBar设置 -->
+                            <div id="tabbar-settings-step" class="step-content">
+                                <!-- TabBar背景设置 -->
+                                <div class="form-group">
+                                    <label>TabBar背景设置</label>
+                                    <div class="radio-group">
+                                        <div class="radio-item">
+                                            <input type="radio" id="tabbar_bg_color_option" name="tabbar_bg_type" value="color" checked>
+                                            <label for="tabbar_bg_color_option">使用背景颜色</label>
+                                        </div>
+                                        <div class="radio-item">
+                                            <input type="radio" id="tabbar_bg_image_option" name="tabbar_bg_type" value="image">
+                                            <label for="tabbar_bg_image_option">使用背景图片</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group" id="tabbar_bg_color_group">
+                                    <label for="tabbar_background_color">TabBar背景颜色</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="tabbar_background_color" name="tabbar_background_color" value="#FFFFFF">
+                                        <input type="text" id="tabbar_background_color_text" placeholder="#FFFFFF" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="tabbar_opacity">背景透明度</label>
+                                    <input type="range" id="tabbar_opacity" name="tabbar_opacity" min="0" max="1" step="0.1" value="1">
+                                    <span id="tabbar_opacity_value">1</span>
+                                </div>
+                                
+                                <div class="form-group" id="tabbar_bg_image_group" style="display: none;">
+                                    <label for="tabbar_background_image">TabBar背景图片</label>
+                                    <input type="file" id="tabbar_background_image" name="tabbar_background_image" accept="image/*">
+                                    <img id="tabbar-background-preview" class="image-preview">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="tabbar_font_color">字体颜色</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="tabbar_font_color" name="tabbar_font_color" value="#000000">
+                                        <input type="text" id="tabbar_font_color_text" placeholder="#000000" maxlength="7">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="tabbar_font_size">字体大小</label>
+                                    <input type="number" id="tabbar_font_size" name="tabbar_font_size" value="12" min="10" max="18">
+                                </div>
+                                
+                                <h4>TabBar图标设置</h4>
+                                
+                                <!-- 首页图标 -->
+                                <div class="tabbar-icon-group">
+                                    <h5>首页图标</h5>
+                                    <div class="form-group">
+                                        <label for="tabbar_home_selected">选中状态图片</label>
+                                        <input type="file" id="tabbar_home_selected" name="tabbar_home_selected" accept="image/*">
+                                        <img id="tabbar-home-selected-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="tabbar_home_unselected">未选中状态图片</label>
+                                        <input type="file" id="tabbar_home_unselected" name="tabbar_home_unselected" accept="image/*">
+                                        <img id="tabbar-home-unselected-preview" class="image-preview">
+                                    </div>
+                                </div>
+                                
+                                <!-- 拍照图标 -->
+                                <div class="tabbar-icon-group">
+                                    <h5>拍照图标</h5>
+                                    <div class="form-group">
+                                        <label for="tabbar_camera_selected">选中状态图片</label>
+                                        <input type="file" id="tabbar_camera_selected" name="tabbar_camera_selected" accept="image/*">
+                                        <img id="tabbar-camera-selected-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="tabbar_camera_unselected">未选中状态图片</label>
+                                        <input type="file" id="tabbar_camera_unselected" name="tabbar_camera_unselected" accept="image/*">
+                                        <img id="tabbar-camera-unselected-preview" class="image-preview">
+                                    </div>
+                                </div>
+                                
+                                <!-- 语音图标 -->
+                                <div class="tabbar-icon-group">
+                                    <h5>语音图标</h5>
+                                    <div class="form-group">
+                                        <label for="tabbar_voice_selected">选中状态图片</label>
+                                        <input type="file" id="tabbar_voice_selected" name="tabbar_voice_selected" accept="image/*">
+                                        <img id="tabbar-voice-selected-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="tabbar_voice_unselected">未选中状态图片</label>
+                                        <input type="file" id="tabbar_voice_unselected" name="tabbar_voice_unselected" accept="image/*">
+                                        <img id="tabbar-voice-unselected-preview" class="image-preview">
+                                    </div>
+                                </div>
+                                
+                                <!-- 主题图标 -->
+                                <div class="tabbar-icon-group">
+                                    <h5>主题图标</h5>
+                                    <div class="form-group">
+                                        <label for="tabbar_theme_selected">选中状态图片</label>
+                                        <input type="file" id="tabbar_theme_selected" name="tabbar_theme_selected" accept="image/*">
+                                        <img id="tabbar-theme-selected-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="tabbar_theme_unselected">未选中状态图片</label>
+                                        <input type="file" id="tabbar_theme_unselected" name="tabbar_theme_unselected" accept="image/*">
+                                        <img id="tabbar-theme-unselected-preview" class="image-preview">
+                                    </div>
+                                </div>
+                                
+                                <!-- 个人中心图标 -->
+                                <div class="tabbar-icon-group">
+                                    <h5>个人中心图标</h5>
+                                    <div class="form-group">
+                                        <label for="tabbar_profile_selected">选中状态图片</label>
+                                        <input type="file" id="tabbar_profile_selected" name="tabbar_profile_selected" accept="image/*">
+                                        <img id="tabbar-profile-selected-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="tabbar_profile_unselected">未选中状态图片</label>
+                                        <input type="file" id="tabbar_profile_unselected" name="tabbar_profile_unselected" accept="image/*">
+                                        <img id="tabbar-profile-unselected-preview" class="image-preview">
+                                    </div>
+                                </div>
+                                
+                                <div class="step-buttons">
+                                    <button type="button" class="btn prev-step" data-prev="button-skins-step">上一步</button>
+                                    <button type="button" class="btn next-step" data-next="summary-step">保存并继续</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 步骤7: 确认提交 -->
+                            <div id="summary-step" class="step-content">
+                                <h3>主题信息确认</h3>
+                                <p>请确认以下主题信息，检查无误后提交。</p>
+                                
+                                <div class="theme-summary">
+                                    <!-- 基本信息摘要 -->
+                                    <div class="summary-section">
+                                        <div class="summary-header">基本信息</div>
+                                        <div class="summary-content">
+                                            <div class="summary-item">
+                                                <div class="summary-label">主题名称:</div>
+                                                <div class="summary-value" id="summary-skin-name"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">版本号:</div>
+                                                <div class="summary-value" id="summary-version"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">付费状态:</div>
+                                                <div class="summary-value" id="summary-is-paid"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">详情图片:</div>
+                                                <div class="summary-value">
+                                                    <img id="summary-detail-image" class="preview-image">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 全局设置摘要 -->
+                                    <div class="summary-section">
+                                        <div class="summary-header">全局设置</div>
+                                        <div class="summary-content">
+                                            <div class="summary-item">
+                                                <div class="summary-label">背景设置类型:</div>
+                                                <div class="summary-value" id="summary-global-bg-type"></div>
+                                            </div>
+                                            <div class="summary-item" id="summary-global-bg-color-item">
+                                                <div class="summary-label">背景颜色:</div>
+                                                <div class="summary-value" id="summary-global-bg-color"></div>
+                                            </div>
+                                            <div class="summary-item" id="summary-global-bg-image-item">
+                                                <div class="summary-label">背景图片:</div>
+                                                <div class="summary-value">
+                                                    <img id="summary-global-bg-image" class="preview-image">
+                                                </div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">使用系统字体:</div>
+                                                <div class="summary-value" id="summary-use-system-font"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 顶部导航区设置摘要 -->
+                                    <div class="summary-section">
+                                        <div class="summary-header">顶部导航区设置</div>
+                                        <div class="summary-content">
+                                            <div class="summary-item">
+                                                <div class="summary-label">导航选中颜色:</div>
+                                                <div class="summary-value" id="summary-top-nav-selected-color"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">导航未选中颜色:</div>
+                                                <div class="summary-value" id="summary-top-nav-unselected-color"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">文字选中颜色:</div>
+                                                <div class="summary-value" id="summary-top-nav-text-selected-color"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">文字未选中颜色:</div>
+                                                <div class="summary-value" id="summary-top-nav-text-unselected-color"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 计算结果区设置摘要 -->
+                                    <div class="summary-section">
+                                        <div class="summary-header">计算结果区设置</div>
+                                        <div class="summary-content">
+                                            <div class="summary-item">
+                                                <div class="summary-label">背景设置类型:</div>
+                                                <div class="summary-value" id="summary-result-bg-type"></div>
+                                            </div>
+                                            <div class="summary-item" id="summary-result-bg-color-item">
+                                                <div class="summary-label">背景颜色:</div>
+                                                <div class="summary-value" id="summary-result-bg-color"></div>
+                                            </div>
+                                            <div class="summary-item" id="summary-result-bg-image-item">
+                                                <div class="summary-label">背景图片:</div>
+                                                <div class="summary-value">
+                                                    <img id="summary-result-bg-image" class="preview-image">
+                                                </div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">字体颜色:</div>
+                                                <div class="summary-value" id="summary-result-font-color"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">字体大小:</div>
+                                                <div class="summary-value" id="summary-result-font-size"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 按钮皮肤设置摘要 -->
+                                    <div class="summary-section">
+                                        <div class="summary-header">按钮皮肤设置</div>
+                                        <div class="summary-content" id="summary-button-skins">
+                                            <!-- 按钮皮肤详细信息将通过JavaScript动态添加 -->
+                                            <div id="summary-button-types-details"></div>
+                                            <h5>已配置按钮类型：</h5>
+                                            <ul id="summary-button-types-list"></ul>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- TabBar设置摘要 -->
+                                    <div class="summary-section">
+                                        <div class="summary-header">TabBar设置</div>
+                                        <div class="summary-content">
+                                            <div class="summary-item">
+                                                <div class="summary-label">背景设置类型:</div>
+                                                <div class="summary-value" id="summary-tabbar-bg-type"></div>
+                                            </div>
+                                            <div class="summary-item" id="summary-tabbar-bg-color-item">
+                                                <div class="summary-label">背景颜色:</div>
+                                                <div class="summary-value" id="summary-tabbar-bg-color"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">背景透明度:</div>
+                                                <div class="summary-value" id="summary-tabbar-opacity"></div>
+                                            </div>
+                                            <div class="summary-item" id="summary-tabbar-bg-image-item">
+                                                <div class="summary-label">背景图片:</div>
+                                                <div class="summary-value">
+                                                    <img id="summary-tabbar-bg-image" class="preview-image">
+                                                </div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">字体颜色:</div>
+                                                <div class="summary-value" id="summary-tabbar-font-color"></div>
+                                            </div>
+                                            <div class="summary-item">
+                                                <div class="summary-label">字体大小:</div>
+                                                <div class="summary-value" id="summary-tabbar-font-size"></div>
+                                            </div>
+                                            
+                                            <!-- TabBar图标摘要 -->
+                                            <div class="summary-item">
+                                                <div class="summary-label">TabBar图标:</div>
+                                                <div class="summary-value">
+                                                    <div class="summary-tabbar-icons" id="summary-tabbar-icons">
+                                                        <!-- 图标摘要将由JavaScript动态添加 -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="step-buttons">
+                                    <button type="button" class="btn prev-step" data-prev="tabbar-settings-step">上一步</button>
+                                    <button type="submit" class="btn submit-btn">确认提交</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 脚本 -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/theme-fixes.js"></script>
+    
+    <script>
+        // 页面导航和表单处理
+        document.addEventListener('DOMContentLoaded', () => {
+            // 设置提交功能
+            function initSubmitForm() {
+                const themeForm = document.getElementById('theme-creation-form');
+                const submitButton = document.querySelector('.submit-btn');
+                
+                if (themeForm && submitButton) {
+                    themeForm.addEventListener('submit', handleFormSubmit);
+                    console.log('表单提交事件绑定成功');
+                }
+            }
+            
+            // 初始化所有功能
+            initNavigation();
+            initBackgroundOptions();
+            initButtonOptions();
+            initColorInputSync();
+            initPreviewFunctions();
+            initSubmitForm();
+            
+            // 函数定义...
+            
+            // 导航相关功能
+            function initNavigation() {
+                // 侧边栏切换
+                const sidebar = document.getElementById('sidebar');
+                const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+                const mainContentWrapper = document.querySelector('.main-content-wrapper');
+                
+                if (toggleSidebarBtn) {
+                    toggleSidebarBtn.addEventListener('click', () => {
+                        sidebar.classList.toggle('sidebar-open');
+                        mainContentWrapper.classList.toggle('sidebar-active');
+                    });
+                }
+                
+                // 主导航切换
+                const navLinks = document.querySelectorAll('.nav-link');
+                const pageContents = document.querySelectorAll('.page-content');
+                
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        // 更新导航状态
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                        
+                        // 显示对应页面
+                        const target = link.getAttribute('data-target');
+                        pageContents.forEach(page => {
+                            page.style.display = page.id === target ? 'block' : 'none';
+                        });
+                        
+                        // 处理子菜单
+                        if (link.nextElementSibling && link.nextElementSibling.classList.contains('submenu')) {
+                            document.querySelectorAll('.submenu').forEach(submenu => {
+                                submenu.classList.remove('submenu-active');
+                            });
+                            link.nextElementSibling.classList.add('submenu-active');
+                        }
+                    });
+                });
+                
+                // 子菜单项点击
+                const submenuLinks = document.querySelectorAll('.submenu-link');
+                
+                submenuLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        // 更新子菜单状态
+                        submenuLinks.forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                        
+                        // 确保主题创建页面显示
+                        document.getElementById('theme-list-page').style.display = 'none';
+                        document.getElementById('theme-create-page').style.display = 'block';
+                        
+                        // 显示对应步骤
+                        const targetStep = link.getAttribute('data-step');
+                        showStep(targetStep);
+                        
+                        // 更新导航状态
+                        document.querySelectorAll('.nav-link').forEach(navLink => {
+                            navLink.classList.remove('active');
+                        });
+                        document.getElementById('theme-create-link').classList.add('active');
+                    });
+                });
+                
+                // 步骤导航
+                const stepLinks = document.querySelectorAll('.step-link');
+                
+                stepLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        const targetStep = link.getAttribute('data-step');
+                        showStep(targetStep);
+                    });
+                });
+                
+                // 下一步按钮
+                const nextButtons = document.querySelectorAll('.next-step');
+                
+                nextButtons.forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const currentStep = button.closest('.step-content').id;
+                        const nextStep = button.getAttribute('data-next');
+                        
+                        // 保存当前步骤数据
+                        if (await saveStepData(currentStep)) {
+                            // 标记当前步骤为已完成
+                            document.querySelector(`.step-link[data-step="${currentStep}"]`).classList.add('completed');
+                            
+                            // 显示下一步
+                            showStep(nextStep);
+                        }
+                    });
+                });
+                
+                // 上一步按钮
+                const prevButtons = document.querySelectorAll('.prev-step');
+                
+                prevButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const prevStep = button.getAttribute('data-prev');
+                        showStep(prevStep);
+                    });
+                });
+                
+                // 新建主题按钮
+                document.getElementById('new-theme-button').addEventListener('click', () => {
+                    // 重置表单
+                    document.getElementById('theme-creation-form').reset();
+                    document.getElementById('theme-id').value = '';
+                    
+                    // 重置步骤导航状态
+                    document.querySelectorAll('.step-link').forEach(link => {
+                        link.classList.remove('completed', 'active');
+                    });
+                    document.querySelector('.step-link[data-step="basic-info-step"]').classList.add('active');
+                    
+                    // 显示第一步
+                    document.querySelectorAll('.step-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById('basic-info-step').classList.add('active');
+                    
+                    // 切换到主题创建页面
+                    document.getElementById('theme-list-page').style.display = 'none';
+                    document.getElementById('theme-create-page').style.display = 'block';
+                    
+                    // 更新导航状态
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    document.getElementById('theme-create-link').classList.add('active');
+                    
+                    // 激活子菜单
+                    document.getElementById('theme-create-submenu').classList.add('submenu-active');
+                    
+                    // 更新子菜单状态
+                    document.querySelectorAll('.submenu-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    document.querySelector('.submenu-link[data-step="basic-info-step"]').classList.add('active');
+                });
+                
+                // 取消创建按钮
+                document.getElementById('cancel-theme-button').addEventListener('click', () => {
+                    if (confirm('确定要取消创建吗？所有未保存的更改将丢失。')) {
+                        // 重置表单
+                        document.getElementById('theme-creation-form').reset();
+                        document.getElementById('theme-id').value = '';
+                        
+                        // 切换到主题列表页面
+                        document.querySelectorAll('.nav-link')[0].click();
+                    }
+                });
+            }
+            
+            // 背景选项相关功能
+            function initBackgroundOptions() {
+                setupBackgroundOptions();
+            }
+            
+            // 按钮类型相关功能
+            function initButtonOptions() {
+                // 按钮类型导航
+                const buttonTypeLinks = document.querySelectorAll('.button-type-link');
+                const buttonTypeSettings = document.querySelectorAll('.button-type-settings');
+                
+                // 默认显示A类按钮
+                buttonTypeSettings.forEach(settings => {
+                    settings.style.display = 'none';
+                });
+                document.getElementById('button-type-a-settings').style.display = 'block';
+                
+                // 绑定切换事件
+                buttonTypeLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        // 更新导航状态
+                        buttonTypeLinks.forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                        
+                        // 显示对应设置
+                        const targetType = link.getAttribute('data-button-type');
+                        buttonTypeSettings.forEach(settings => {
+                            settings.style.display = 'none';
+                        });
+                        document.getElementById(targetType + '-settings').style.display = 'block';
+                    });
+                });
+                
+                // 设置图片和颜色互斥
+                const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+                buttonTypes.forEach(type => {
+                    setupButtonOptionsForType(type);
+                });
+            }
+            
+            // 设置按钮类型图片和颜色互斥
+            function setupButtonOptionsForType(type) {
+                const useImageCheckbox = document.getElementById(`button_TYPE_${type}_use_image`);
+                if (!useImageCheckbox) return;
+                
+                // 初始状态设置
+                const pressedImage = document.getElementById(`button_TYPE_${type}_pressed_image`);
+                const releasedImage = document.getElementById(`button_TYPE_${type}_released_image`);
+                if (pressedImage) pressedImage.parentElement.style.display = useImageCheckbox.checked ? 'block' : 'none';
+                if (releasedImage) releasedImage.parentElement.style.display = useImageCheckbox.checked ? 'none' : 'block';
+                
+                // 所有颜色输入控件初始状态
+                document.querySelectorAll(`[id^="button_TYPE_${type}_"][id$="_color"]`).forEach(el => {
+                    const group = el.closest('.form-group');
+                    if (group && !group.classList.contains('checkbox-group')) {
+                        group.style.display = useImageCheckbox.checked ? 'none' : 'block';
+                    }
+                });
+                
+                // 绑定事件
+                useImageCheckbox.addEventListener('change', () => {
+                    // 图片相关控件
+                    const imageFields = document.querySelectorAll(`#button-type-${type.toLowerCase()}-settings [id^="button_TYPE_${type}_"][id$="_image"]`);
+                    imageFields.forEach(el => {
+                        if (el.id !== `button_TYPE_${type}_use_image`) { // 排除checkbox自身
+                            const group = el.closest('.form-group');
+                            if (group) group.style.display = useImageCheckbox.checked ? 'block' : 'none';
+                        }
+                    });
+                    
+                    // 颜色相关控件
+                    const colorFields = document.querySelectorAll(`#button-type-${type.toLowerCase()}-settings [id^="button_TYPE_${type}_"][id$="_color"]`);
+                    colorFields.forEach(el => {
+                        const group = el.closest('.form-group');
+                        if (group && !group.classList.contains('checkbox-group')) {
+                            group.style.display = useImageCheckbox.checked ? 'none' : 'block';
+                        }
+                    });
+                });
+            }
+            
+            // 颜色输入相关功能
+            function initColorInputSync() {
+                // 查找所有颜色输入组
+                const colorGroups = document.querySelectorAll('.color-input-group');
+                
+                colorGroups.forEach(group => {
+                    const colorInput = group.querySelector('input[type="color"]');
+                    const textInput = group.querySelector('input[type="text"]');
+                    
+                    if (!colorInput || !textInput) return;
+                    
+                    // 初始化文本输入框的值
+                    textInput.value = colorInput.value;
+                    
+                    // 颜色选择器更改时，更新文本输入框
+                    colorInput.addEventListener('input', () => {
+                        textInput.value = colorInput.value.toUpperCase();
+                    });
+                    
+                    // 文本输入框更改时，验证并更新颜色选择器
+                    textInput.addEventListener('input', () => {
+                        const value = textInput.value;
+                        // 确保以#开头
+                        if (!value.startsWith('#')) {
+                            textInput.value = '#' + value;
+                        }
+                        
+                        // 验证是否为有效的颜色格式
+                        const colorRegex = /^#([0-9A-F]{3}){1,2}$/i;
+                        if (colorRegex.test(textInput.value)) {
+                            colorInput.value = textInput.value;
+                        }
+                    });
+                    
+                    // 失去焦点时验证格式
+                    textInput.addEventListener('blur', () => {
+                        let value = textInput.value;
+                        
+                        // 如果为空，使用颜色选择器的当前值
+                        if (!value) {
+                            textInput.value = colorInput.value.toUpperCase();
+                            return;
+                        }
+                        
+                        // 确保以#开头
+                        if (!value.startsWith('#')) {
+                            value = '#' + value;
+                        }
+                        
+                        // 处理简写形式 (#RGB -> #RRGGBB)
+                        if (value.length === 4) {
+                            const r = value[1];
+                            const g = value[2];
+                            const b = value[3];
+                            value = `#${r}${r}${g}${g}${b}${b}`;
+                        }
+                        
+                        // 验证是否为有效的颜色格式
+                        const colorRegex = /^#[0-9A-F]{6}$/i;
+                        if (colorRegex.test(value)) {
+                            textInput.value = value.toUpperCase();
+                            colorInput.value = value;
+                        } else {
+                            // 无效颜色，恢复为颜色选择器的值
+                            textInput.value = colorInput.value.toUpperCase();
+                        }
+                    });
+                });
+                
+                // TabBar透明度滑块
+                const tabbarOpacity = document.getElementById('tabbar_opacity');
+                const tabbarOpacityValue = document.getElementById('tabbar_opacity_value');
+                
+                if (tabbarOpacity && tabbarOpacityValue) {
+                    // 初始化显示值
+                    tabbarOpacityValue.textContent = tabbarOpacity.value;
+                    
+                    // 添加滑块变化事件监听
+                    tabbarOpacity.addEventListener('input', () => {
+                        tabbarOpacityValue.textContent = tabbarOpacity.value;
+                    });
+                }
+            }
+            
+            // 预览功能相关初始化
+            function initPreviewFunctions() {
+                // 设置所有图片预览
+                setupImagePreview('detail_image', 'detail-image-preview');
+                setupImagePreview('global_background_image', 'global-background-preview');
+                setupImagePreview('result_background_image', 'result-background-preview');
+                setupImagePreview('tabbar_background_image', 'tabbar-background-preview');
+                setupImagePreview('tabbar_home_selected', 'tabbar-home-selected-preview');
+                setupImagePreview('tabbar_home_unselected', 'tabbar-home-unselected-preview');
+                
+                // 为所有按钮类型添加图片预览
+                const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+                buttonTypes.forEach(type => {
+                    setupImagePreview(`button_TYPE_${type}_pressed_image`, `button-${type.toLowerCase()}-pressed-preview`);
+                    setupImagePreview(`button_TYPE_${type}_released_image`, `button-${type.toLowerCase()}-released-preview`);
+                    setupAudioPreview(`sound_TYPE_${type}`, `sound-${type.toLowerCase()}-preview`, `clear-sound-${type.toLowerCase()}`);
+                });
+            }
+            
+            // 保存步骤数据
+            async function saveStepData(currentStep) {
+                try {
+                    // 先调用updateSummary确保最新数据显示在摘要中
+                    if (currentStep === 'tabbar-settings-step') {
+                        updateSummary();
+                    }
+                    
+                    console.log(`准备保存步骤: ${currentStep} 的数据`);
+                    // 显示加载指示器
+                    document.getElementById('step-loading').style.display = 'block';
+                    
+                    // 显示成功消息
+                    const messageElement = document.getElementById('message');
+                    messageElement.textContent = `${currentStep} 数据已保存`;
+                    messageElement.className = 'message success';
+                    messageElement.style.display = 'block';
+                    
+                    // 3秒后隐藏消息
+                    setTimeout(() => {
+                        messageElement.style.display = 'none';
+                    }, 3000);
+                    
+                    return true;
+                } catch (error) {
+                    console.error('保存步骤数据失败:', error);
+                    
+                    // 显示错误消息
+                    const messageElement = document.getElementById('message');
+                    messageElement.textContent = `保存失败: ${error.message}`;
+                    messageElement.className = 'message error';
+                    messageElement.style.display = 'block';
+                    
+                    return false;
+                } finally {
+                    // 隐藏加载指示器
+                    document.getElementById('step-loading').style.display = 'none';
+                }
+            }
+            
+            // 处理表单提交
+            async function handleFormSubmit(e) {
+                // 阻止表单默认提交
+                e.preventDefault();
+                
+                try {
+                    console.log('提交表单数据');
+                    // 显示加载指示器
+                    document.getElementById('loading-indicator').style.display = 'block';
+                    
+                    // 收集表单数据
+                    const formData = new FormData(document.getElementById('theme-creation-form'));
+                    
+                    // 发送表单数据到服务器
+                    const response = await fetch('/api/themes', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`服务器响应错误: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('提交成功:', result);
+                    
+                    // 显示成功消息
+                    const messageElement = document.getElementById('message');
+                    messageElement.textContent = '主题创建成功';
+                    messageElement.className = 'message success';
+                    messageElement.style.display = 'block';
+                    
+                    // 3秒后隐藏消息并返回到主题列表页面
+                    setTimeout(() => {
+                        messageElement.style.display = 'none';
+                        document.getElementById('theme-create-page').style.display = 'none';
+                        document.getElementById('theme-list-page').style.display = 'block';
+                        
+                        // 更新导航状态
+                        document.querySelectorAll('.nav-link').forEach(link => {
+                            link.classList.remove('active');
+                        });
+                        document.querySelector('[data-target="theme-list-page"]').classList.add('active');
+                        
+                        // 重新加载主题列表
+                        loadThemes();
+                    }, 3000);
+                    
+                    return true;
+                } catch (error) {
+                    console.error('提交表单失败:', error);
+                    
+                    // 显示错误消息
+                    const messageElement = document.getElementById('message');
+                    messageElement.textContent = `提交失败: ${error.message}`;
+                    messageElement.className = 'message error';
+                    messageElement.style.display = 'block';
+                    
+                    return false;
+                } finally {
+                    // 隐藏加载指示器
+                    document.getElementById('loading-indicator').style.display = 'none';
+                }
+            }
+            
+            // 更新确认提交页的摘要信息
+            function updateSummary() {
+                try {
+                    // 基本信息
+                    const skinName = document.getElementById('skin_name').value || '未设置';
+                    const version = document.getElementById('version').value || '1.0';
+                    const isPaid = document.getElementById('is_paid').checked ? '付费' : '免费';
+                    
+                    document.getElementById('summary-skin-name').textContent = skinName;
+                    document.getElementById('summary-version').textContent = version;
+                    document.getElementById('summary-is-paid').textContent = isPaid;
+                    
+                    // 详情图片
+                    const detailImage = document.getElementById('detail-image-preview');
+                    const summaryDetailImage = document.getElementById('summary-detail-image');
+                    if (detailImage && detailImage.src && detailImage.style.display !== 'none') {
+                        summaryDetailImage.src = detailImage.src;
+                        summaryDetailImage.style.display = 'block';
+                    } else {
+                        summaryDetailImage.style.display = 'none';
+                    }
+                    
+                    // 全局背景设置
+                    const globalBgType = document.getElementById('global_bg_image_option').checked ? '使用背景图片' : '使用背景颜色';
+                    document.getElementById('summary-global-bg-type').textContent = globalBgType;
+                    
+                    const globalBgColorItem = document.getElementById('summary-global-bg-color-item');
+                    const globalBgImageItem = document.getElementById('summary-global-bg-image-item');
+                    
+                    if (document.getElementById('global_bg_image_option').checked) {
+                        globalBgColorItem.style.display = 'none';
+                        globalBgImageItem.style.display = 'flex';
+                        
+                        const globalBgImage = document.getElementById('global-background-preview');
+                        const summaryGlobalBgImage = document.getElementById('summary-global-bg-image');
+                        
+                        if (globalBgImage && globalBgImage.src && globalBgImage.style.display !== 'none') {
+                            summaryGlobalBgImage.src = globalBgImage.src;
+                            summaryGlobalBgImage.style.display = 'block';
+                        } else {
+                            summaryGlobalBgImage.style.display = 'none';
+                        }
+                    } else {
+                        globalBgColorItem.style.display = 'flex';
+                        globalBgImageItem.style.display = 'none';
+                        
+                        const globalBgColor = document.getElementById('global_background_color').value;
+                        const summaryGlobalBgColor = document.getElementById('summary-global-bg-color');
+                        
+                        summaryGlobalBgColor.textContent = globalBgColor;
+                        summaryGlobalBgColor.style.backgroundColor = globalBgColor;
+                    }
+                    
+                    // 系统字体设置
+                    const useSystemFont = document.getElementById('use_system_font').checked ? '是' : '否';
+                    document.getElementById('summary-use-system-font').textContent = useSystemFont;
+                    
+                    // 顶部导航区设置
+                    const navSelectedColor = document.getElementById('top_nav_selected_color').value;
+                    const navUnselectedColor = document.getElementById('top_nav_unselected_color').value;
+                    const textSelectedColor = document.getElementById('top_nav_text_selected_color').value;
+                    const textUnselectedColor = document.getElementById('top_nav_text_unselected_color').value;
+                    
+                    document.getElementById('summary-top-nav-selected-color').textContent = navSelectedColor;
+                    document.getElementById('summary-top-nav-selected-color').style.backgroundColor = navSelectedColor;
+                    
+                    document.getElementById('summary-top-nav-unselected-color').textContent = navUnselectedColor;
+                    document.getElementById('summary-top-nav-unselected-color').style.backgroundColor = navUnselectedColor;
+                    
+                    document.getElementById('summary-top-nav-text-selected-color').textContent = textSelectedColor;
+                    document.getElementById('summary-top-nav-text-selected-color').style.backgroundColor = textSelectedColor;
+                    
+                    document.getElementById('summary-top-nav-text-unselected-color').textContent = textUnselectedColor;
+                    document.getElementById('summary-top-nav-text-unselected-color').style.backgroundColor = textUnselectedColor;
+                    
+                    // 计算结果区设置
+                    const resultBgType = document.getElementById('result_bg_image_option').checked ? '使用背景图片' : '使用背景颜色';
+                    document.getElementById('summary-result-bg-type').textContent = resultBgType;
+                    
+                    const resultBgColorItem = document.getElementById('summary-result-bg-color-item');
+                    const resultBgImageItem = document.getElementById('summary-result-bg-image-item');
+                    
+                    if (document.getElementById('result_bg_image_option').checked) {
+                        resultBgColorItem.style.display = 'none';
+                        resultBgImageItem.style.display = 'flex';
+                        
+                        const resultBgImage = document.getElementById('result-background-preview');
+                        const summaryResultBgImage = document.getElementById('summary-result-bg-image');
+                        
+                        if (resultBgImage && resultBgImage.src && resultBgImage.style.display !== 'none') {
+                            summaryResultBgImage.src = resultBgImage.src;
+                            summaryResultBgImage.style.display = 'block';
+                        } else {
+                            summaryResultBgImage.style.display = 'none';
+                        }
+                    } else {
+                        resultBgColorItem.style.display = 'flex';
+                        resultBgImageItem.style.display = 'none';
+                        
+                        const resultBgColor = document.getElementById('result_background_color').value;
+                        const summaryResultBgColor = document.getElementById('summary-result-bg-color');
+                        
+                        summaryResultBgColor.textContent = resultBgColor;
+                        summaryResultBgColor.style.backgroundColor = resultBgColor;
+                    }
+                    
+                    const resultFontColor = document.getElementById('result_font_color').value;
+                    const resultFontSize = document.getElementById('result_font_size').value;
+                    
+                    document.getElementById('summary-result-font-color').textContent = resultFontColor;
+                    document.getElementById('summary-result-font-color').style.backgroundColor = resultFontColor;
+                    document.getElementById('summary-result-font-size').textContent = resultFontSize + 'px';
+                    
+                    // 按钮皮肤设置
+                    const buttonTypesList = document.getElementById('summary-button-types-list');
+                    buttonTypesList.innerHTML = '';
+                    
+                    const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+                    const buttonTypeDesc = {
+                        'A': '功能按钮(AC, ±, %)',
+                        'B': '运算符按钮(÷, ×, -, +)',
+                        'C': '数字按钮(0-9, .)',
+                        'D': '等号按钮(=)',
+                        'E': '科学功能按钮',
+                        'F': '科学计算器功能按钮',
+                        'G': '科学计算器运算符按钮',
+                        'H': '科学计算器数字按钮',
+                        'I': '科学计算器等号按钮'
+                    };
+                    
+                    buttonTypes.forEach(type => {
+                        const useImageCheckbox = document.getElementById(`button_TYPE_${type}_use_image`);
+                        
+                        if (useImageCheckbox) {
+                    const useImage = document.getElementById(`button_TYPE_${type}_use_image`);
+                    
+                    if (useImage) {
+                        const listItem = document.createElement('li');
+                        
+                        // 确定按钮类型描述
+                        let typeDesc = '';
+                        switch (type) {
+                            case 'A': typeDesc = '功能按钮(AC, ±, %)'; break;
+                            case 'B': typeDesc = '运算符按钮(÷, ×, -, +)'; break;
+                            case 'C': typeDesc = '数字按钮(0-9, .)'; break;
+                            case 'D': typeDesc = '等号按钮(=)'; break;
+                            case 'E': typeDesc = '科学功能按钮'; break;
+                            case 'F': typeDesc = '科学计算器功能按钮'; break;
+                            case 'G': typeDesc = '科学计算器运算符按钮'; break;
+                            case 'H': typeDesc = '科学计算器数字按钮'; break;
+                            case 'I': typeDesc = '科学计算器等号按钮'; break;
+                        }
+                        
+                        listItem.textContent = `${type}类 - ${typeDesc}: ${useImage.checked ? '使用图片' : '使用颜色'}`;
+                        buttonTypesList.appendChild(listItem);
+                    }
+                });
+            }
+            
+            // 设置图片预览
+            function setupImagePreview(inputId, previewId) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+                
+                if (!input || !preview) return;
+                
+                input.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        
+                        reader.onload = (e) => {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                        };
+                        
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+            }
+            
+            // 设置音频预览
+            function setupAudioPreview(inputId, previewId, clearBtnId) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+                const clearBtn = document.getElementById(clearBtnId);
+                
+                if (!input || !preview) return;
+                
+                input.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        
+                        reader.onload = (e) => {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                        };
+                        
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+                
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        input.value = '';
+                        preview.src = '';
+                        preview.style.display = 'none';
+                    });
+                }
+            }
+            
+            // 设置单选按钮功能（背景互斥）
+            function setupBackgroundOptions() {
+                // 全局背景设置
+                const globalBgColorOption = document.getElementById('global_bg_color_option');
+                const globalBgImageOption = document.getElementById('global_bg_image_option');
+                const globalBgColorGroup = document.getElementById('global_bg_color_group');
+                const globalBgImageGroup = document.getElementById('global_bg_image_group');
+                
+                if (globalBgColorOption && globalBgImageOption) {
+                    // 初始状态
+                    globalBgColorGroup.style.display = globalBgColorOption.checked ? 'block' : 'none';
+                    globalBgImageGroup.style.display = globalBgImageOption.checked ? 'block' : 'none';
+                    
+                    // 切换事件
+                    globalBgColorOption.addEventListener('change', () => {
+                        if (globalBgColorOption.checked) {
+                            globalBgColorGroup.style.display = 'block';
+                            globalBgImageGroup.style.display = 'none';
+                            // 添加隐藏字段，用于表单提交
+                            document.getElementById('has_global_background_image').value = 'false';
+                        }
+                    });
+                    
+                    globalBgImageOption.addEventListener('change', () => {
+                        if (globalBgImageOption.checked) {
+                            globalBgColorGroup.style.display = 'none';
+                            globalBgImageGroup.style.display = 'block';
+                            // 添加隐藏字段，用于表单提交
+                            document.getElementById('has_global_background_image').value = 'true';
+                        }
+                    });
+                }
+                
+                // 结果区域背景设置
+                const resultBgColorOption = document.getElementById('result_bg_color_option');
+                const resultBgImageOption = document.getElementById('result_bg_image_option');
+                const resultBgColorGroup = document.getElementById('result_bg_color_group');
+                const resultBgImageGroup = document.getElementById('result_bg_image_group');
+                
+                if (resultBgColorOption && resultBgImageOption) {
+                    // 初始状态
+                    resultBgColorGroup.style.display = resultBgColorOption.checked ? 'block' : 'none';
+                    resultBgImageGroup.style.display = resultBgImageOption.checked ? 'block' : 'none';
+                    
+                    // 切换事件
+                    resultBgColorOption.addEventListener('change', () => {
+                        if (resultBgColorOption.checked) {
+                            resultBgColorGroup.style.display = 'block';
+                            resultBgImageGroup.style.display = 'none';
+                            // 添加隐藏字段，用于表单提交
+                            document.getElementById('result_use_image').value = 'false';
+                        }
+                    });
+                    
+                    resultBgImageOption.addEventListener('change', () => {
+                        if (resultBgImageOption.checked) {
+                            resultBgColorGroup.style.display = 'none';
+                            resultBgImageGroup.style.display = 'block';
+                            // 添加隐藏字段，用于表单提交
+                            document.getElementById('result_use_image').value = 'true';
+                        }
+                    });
+                }
+                
+                // TabBar背景设置
+                const tabbarBgColorOption = document.getElementById('tabbar_bg_color_option');
+                const tabbarBgImageOption = document.getElementById('tabbar_bg_image_option');
+                const tabbarBgColorGroup = document.getElementById('tabbar_bg_color_group');
+                const tabbarBgImageGroup = document.getElementById('tabbar_bg_image_group');
+                
+                if (tabbarBgColorOption && tabbarBgImageOption) {
+                    // 初始状态
+                    tabbarBgColorGroup.style.display = tabbarBgColorOption.checked ? 'block' : 'none';
+                    tabbarBgImageGroup.style.display = tabbarBgImageOption.checked ? 'block' : 'none';
+                    
+                    // 切换事件
+                    tabbarBgColorOption.addEventListener('change', () => {
+                        if (tabbarBgColorOption.checked) {
+                            tabbarBgColorGroup.style.display = 'block';
+                            tabbarBgImageGroup.style.display = 'none';
+                            // 添加隐藏字段，用于表单提交
+                            document.getElementById('tabbar_use_background_image').value = 'false';
+                        }
+                    });
+                    
+                    tabbarBgImageOption.addEventListener('change', () => {
+                        if (tabbarBgImageOption.checked) {
+                            tabbarBgColorGroup.style.display = 'none';
+                            tabbarBgImageGroup.style.display = 'block';
+                            // 添加隐藏字段，用于表单提交
+                            document.getElementById('tabbar_use_background_image').value = 'true';
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
