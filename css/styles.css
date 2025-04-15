@@ -308,23 +308,37 @@ header {
   gap: 20px;
 }
 
+/* 主题卡片 */
 .theme-card {
   background-color: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: row;
+  transition: all 0.3s ease;
+  cursor: pointer;
   overflow: hidden;
-  transition: transform 0.3s, box-shadow 0.3s;
+  height: 320px;
 }
 
 .theme-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  background-color: #f8f9ff;
+}
+
+.theme-card:active {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
 }
 
 .theme-image {
-  height: 180px;
+  width: 180px;
+  height: 320px;
   overflow: hidden;
   position: relative;
+  flex-shrink: 0;
 }
 
 .theme-image img {
@@ -340,6 +354,14 @@ header {
 
 .theme-info {
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1;
+}
+
+.theme-info-content {
+  flex-grow: 1;
 }
 
 .theme-info h3 {
@@ -356,8 +378,8 @@ header {
 
 .theme-actions {
   display: flex;
-  padding: 10px 15px 15px;
   gap: 10px;
+  margin-top: auto;
 }
 
 .edit-theme {
@@ -441,40 +463,42 @@ header {
   color: var(--secondary-color);
 }
 
-.form-section {
-  margin-bottom: 20px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  overflow: hidden;
-}
-
-.section-header {
-  background-color: var(--light-color);
-  padding: 10px 15px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.section-header h3 {
-  margin: 0;
-  font-size: 16px;
-}
-
-.section-content {
-  padding: 15px;
-  display: none;
-}
-
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+/* 并排表单布局 */
+.form-group-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group-half {
+  flex: 1;
+  min-width: 0; /* 防止flex项溢出 */
 }
 
 .form-group label {
   display: block;
   margin-bottom: 5px;
   font-weight: 500;
+}
+
+.form-tip {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
 }
 
 .form-group input[type="text"],
@@ -690,15 +714,17 @@ header {
 }
 
 .summary-section {
-  margin-bottom: 20px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  margin-bottom: 30px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 .summary-header {
-  background-color: var(--light-color);
+  background-color: #f5f5f5;
   padding: 10px 15px;
-  font-weight: 500;
+  font-weight: bold;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .summary-content {
@@ -708,22 +734,82 @@ header {
 .summary-item {
   display: flex;
   margin-bottom: 10px;
+  border-bottom: 1px dashed #eee;
+  padding-bottom: 10px;
 }
 
 .summary-label {
-  width: 200px;
+  width: 30%;
   font-weight: 500;
+  color: #555;
 }
 
 .summary-value {
-  flex: 1;
+  width: 70%;
+  color: #333;
+}
+
+.color-preview {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid #ddd;
+  vertical-align: middle;
+  margin-right: 5px;
 }
 
 .preview-image {
-  max-width: 100%;
-  max-height: 200px;
-  margin-top: 10px;
-  border: 1px solid var(--border-color);
+  max-width: 100px;
+  max-height: 100px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.small-preview {
+  max-width: 48px;
+  max-height: 48px;
+}
+
+/* 按钮设置摘要样式 */
+#summary-button-settings > div {
+  margin-bottom: 15px;
+  padding: 0;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+#summary-button-settings h4 {
+  margin: 0;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #eee;
+}
+
+/* Tabbar图标摘要样式 */
+.summary-tabbar-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.summary-tabbar-icon {
+  flex: 0 0 calc(50% - 20px);
+  border: 1px solid #eee;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+
+.summary-tabbar-icon h5 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
 }
 
 /* 颜色选择器组合样式 */
@@ -760,6 +846,12 @@ header {
   margin-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 100;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .button-type-link {
@@ -772,11 +864,36 @@ header {
 
 .button-type-link:hover {
   background-color: #e9ecef;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
 }
 
 .button-type-link.active {
   background-color: var(--primary-color);
   color: white;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.button-type-settings {
+  margin-bottom: 30px;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.button-type-settings:target,
+.button-type-settings.highlight {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 10px rgba(74, 108, 247, 0.3);
+}
+
+.button-type-settings h3 {
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #eee;
+  color: var(--primary-color);
 }
 
 /* 单选按钮组样式 */
@@ -910,4 +1027,49 @@ header {
   .button-type-detail-content {
     grid-template-columns: 1fr;
   }
+}
+
+.theme-name {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.theme-usage-count {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.theme-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.theme-version {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 使用次数样式 */
+.usage-count {
+    font-size: 0.9em;
+    color: #4a90e2;
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+}
+
+.usage-count::before {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234a90e2'%3E%3Cpath d='M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
 } 

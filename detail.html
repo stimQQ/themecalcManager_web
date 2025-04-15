@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主题详情 - 计算器皮肤主题管理系统</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* 主题详情页特有样式 */
+        .theme-detail-header {
+            display: flex;
+            margin-bottom: 30px;
+            align-items: flex-start;
+            gap: 30px;
+        }
+        
+        .theme-detail-image {
+            width: 300px;
+            height: auto;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-detail-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .theme-detail-info {
+            flex: 1;
+        }
+        
+        .theme-detail-info h1 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+        
+        .theme-detail-info p {
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+        
+        .theme-detail-info .tag {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: var(--light-color);
+            border-radius: 4px;
+            margin-right: 10px;
+            color: var(--dark-color);
+        }
+        
+        .theme-detail-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .theme-detail-section {
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .theme-detail-section-header {
+            padding: 15px;
+            background-color: var(--light-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .theme-detail-section-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .theme-detail-section-content {
+            padding: 20px;
+        }
+        
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .property-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .property-label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+        
+        .property-value {
+            color: var(--dark-color);
+        }
+        
+        .color-preview {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            margin-right: 10px;
+            border: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        
+        .button-preview {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载指示器 -->
+    <div id="loading-indicator">
+        <div class="loader"></div>
+    </div>
+    
+    <!-- 侧边栏切换按钮（移动端显示） -->
+    <button id="toggle-sidebar" class="toggle-sidebar">☰</button>
+    
+    <!-- 页面容器 -->
+    <div class="page-container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">主题管理系统</div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link active">
+                        <i>📋</i> 主题管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="create.html" class="nav-link">
+                        <i>➕</i> 主题创建
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 主要内容 -->
+        <div class="main-content-wrapper">
+            <!-- 头部 -->
+            <header>
+                <div class="container header-container">
+                    <div class="logo">计算器皮肤主题管理系统</div>
+                    <div class="user-info">
+                        <button id="logout-button" class="btn">退出登录</button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- 主要内容区域 -->
+            <div class="container">
+                <!-- 消息显示区域 -->
+                <div id="message" class="message"></div>
+                
+                <!-- 返回链接 -->
+                <a href="index.html" class="back-link">← 返回主题列表</a>
+                
+                <!-- 主题详情页面 -->
+                <div id="theme-detail-page" class="page-content">
+                    <div class="main-content">
+                        <div id="theme-detail-content">
+                            <!-- 内容将通过JavaScript动态加载 -->
+                            <div class="loading-placeholder">加载中...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 脚本 -->
+    <script src="js/api.js"></script>
+    <script>
+        // 获取URL参数
+        function getUrlParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // 显示错误消息
+        function showErrorMessage(message) {
+            const messageElement = document.getElementById('message');
+            if (!messageElement) return;
+            
+            messageElement.textContent = message;
+            messageElement.className = 'message error';
+            messageElement.style.display = 'block';
+            
+            // 5秒后隐藏消息
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // 显示成功消息
+        function showSuccessMessage(message) {
+            const messageElement = document.getElementById('message');
+            if (!messageElement) return;
+            
+            messageElement.textContent = message;
+            messageElement.className = 'message success';
+            messageElement.style.display = 'block';
+            
+            // 3秒后隐藏消息
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 加载主题详情
+        async function loadThemeDetail() {
+            const themeId = getUrlParam('id');
+            
+            if (!themeId) {
+                showErrorMessage('未指定主题ID');
+                return;
+            }
+            
+            try {
+                // 显示加载指示器
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'block';
+                }
+                
+                console.log(`开始请求主题ID: ${themeId} 的详情`);
+                
+                // 获取主题详情 - 直接请求API，不使用themeAPI封装，以确保正确获取图片URL
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`/api/skin/${themeId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API请求失败: ${response.status} ${response.statusText} - ${errorText}`);
+                }
+                
+                const theme = await response.json();
+                console.log('主题详情返回数据:', JSON.stringify(theme, null, 2));
+                
+                // 渲染主题详情
+                renderThemeDetail(theme);
+            } catch (error) {
+                console.error('加载主题详情失败:', error);
+                showErrorMessage(`加载主题详情失败: ${error.message}`);
+            } finally {
+                // 隐藏加载指示器
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+            }
+        }
+        
+        // 渲染主题详情
+        function renderThemeDetail(theme) {
+            const detailContent = document.getElementById('theme-detail-content');
+            
+            if (!detailContent) return;
+            
+            // 处理日期格式
+            let createTime = '未知日期';
+            let updateTime = '无';
+            
+            try {
+                if (theme.create_time) {
+                    createTime = new Date(theme.create_time).toLocaleDateString('zh-CN');
+                }
+                if (theme.update_time) {
+                    updateTime = new Date(theme.update_time).toLocaleDateString('zh-CN');
+                }
+            } catch (e) {
+                console.warn('日期格式化失败:', e);
+            }
+            
+            // 构建详情页头部
+            const detailHtml = `
+                <div class="theme-detail-header">
+                    <div class="theme-detail-image">
+                        <img src="${theme.detail_image || 'images/default-theme.png'}" alt="${theme.name || '未命名主题'}">
+                    </div>
+                    <div class="theme-detail-info">
+                        <h1>${theme.name || '未命名主题'}</h1>
+                        <p><strong>版本:</strong> ${theme.version || '1.0'}</p>
+                        <p><strong>类型:</strong> <span class="tag">${theme.is_paid ? '付费' : '免费'}</span></p>
+                        <p><strong>上传时间:</strong> ${createTime}</p>
+                        <p><strong>最后更新:</strong> ${updateTime}</p>
+                        <div class="theme-detail-actions">
+                            <a href="edit.html?id=${theme.id}" class="btn edit-theme">编辑主题</a>
+                            <button class="btn delete-theme" onclick="confirmDeleteTheme(${theme.id})">删除主题</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 全局设置 -->
+                <div class="theme-detail-section">
+                    <div class="theme-detail-section-header">
+                        <h2>全局设置</h2>
+                    </div>
+                    <div class="theme-detail-section-content">
+                        <div class="property-grid">
+                            <div class="property-item">
+                                <span class="property-label">背景类型</span>
+                                <span class="property-value">${theme.has_global_background_image ? '背景图片' : '背景颜色'}</span>
+                            </div>
+                            ${theme.has_global_background_image ? 
+                                `<div class="property-item">
+                                    <span class="property-label">背景图片</span>
+                                    <img src="${theme.global_background_image}" alt="背景图片" style="max-width: 200px; margin-top: 10px;">
+                                </div>` : 
+                                `<div class="property-item">
+                                    <span class="property-label">背景颜色</span>
+                                    <span class="property-value">
+                                        <span class="color-preview" style="background-color: ${theme.global_background_color || '#FFFFFF'};"></span>
+                                        ${theme.global_background_color || '#FFFFFF'}
+                                    </span>
+                                </div>`
+                            }
+                            <div class="property-item">
+                                <span class="property-label">使用系统字体</span>
+                                <span class="property-value">${theme.use_system_font ? '是' : '否'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 结果区域设置 -->
+                <div class="theme-detail-section">
+                    <div class="theme-detail-section-header">
+                        <h2>计算结果区设置</h2>
+                    </div>
+                    <div class="theme-detail-section-content">
+                        <div class="property-grid">
+                            <div class="property-item">
+                                <span class="property-label">背景颜色</span>
+                                <span class="property-value">
+                                    <span class="color-preview" style="background-color: ${theme.result_background_color || '#F5F5F5'};"></span>
+                                    ${theme.result_background_color || '#F5F5F5'}
+                                </span>
+                            </div>
+                            <div class="property-item">
+                                <span class="property-label">字体颜色</span>
+                                <span class="property-value">
+                                    <span class="color-preview" style="background-color: ${theme.result_font_color || '#000000'};"></span>
+                                    ${theme.result_font_color || '#000000'}
+                                </span>
+                            </div>
+                            <div class="property-item">
+                                <span class="property-label">字体大小</span>
+                                <span class="property-value">${theme.result_font_size || '24'}px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- TabBar 图标设置 -->
+                <div class="theme-detail-section">
+                    <div class="theme-detail-section-header">
+                        <h2>TabBar 图标设置</h2>
+                    </div>
+                    <div class="theme-detail-section-content">
+                        ${renderTabBarIcons(theme)}
+                    </div>
+                </div>
+                
+                <!-- 按钮设置 -->
+                <div class="theme-detail-section">
+                    <div class="theme-detail-section-header">
+                        <h2>按钮设置</h2>
+                    </div>
+                    <div class="theme-detail-section-content">
+                        ${renderButtonsDetail(theme)}
+                    </div>
+                </div>
+            `;
+            
+            detailContent.innerHTML = detailHtml;
+        }
+        
+        // 渲染TabBar图标
+        function renderTabBarIcons(theme) {
+            if (!theme.tabbar_icons) {
+                return '<p>无TabBar图标数据</p>';
+            }
+            
+            const tabbarIcons = theme.tabbar_icons;
+            let iconsHtml = '<div class="summary-tabbar-icons">';
+            
+            // 遍历TabBar图标数据
+            for (const [iconName, iconData] of Object.entries(tabbarIcons)) {
+                iconsHtml += `
+                    <div class="summary-icon-item">
+                        <h6>${getTabIconName(iconName)}</h6>
+                        <div class="summary-icon-images">
+                            <div class="summary-icon-image">
+                                <img src="${iconData.unselected}" alt="${iconName} 未选中状态">
+                                <span>未选中</span>
+                            </div>
+                            <div class="summary-icon-image">
+                                <img src="${iconData.selected}" alt="${iconName} 选中状态">
+                                <span>选中</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            iconsHtml += '</div>';
+            return iconsHtml;
+        }
+        
+        // 获取TabBar图标名称的中文描述
+        function getTabIconName(iconKey) {
+            const iconNames = {
+                'home': '首页',
+                'theme': '主题',
+                'camera': '相机',
+                'voice': '语音',
+                'profile': '个人'
+            };
+            
+            return iconNames[iconKey] || iconKey;
+        }
+        
+        // 渲染按钮详情
+        function renderButtonsDetail(theme) {
+            if (!theme.buttons || !Array.isArray(theme.buttons) || theme.buttons.length === 0) {
+                return '<p>无按钮设置数据</p>';
+            }
+            
+            // 按钮类型描述
+            const buttonTypeDesc = {
+                'TYPE_A': '功能按钮(AC, ±, %)',
+                'TYPE_B': '运算符按钮(÷, ×, -, +)',
+                'TYPE_C': '数字按钮(0-9, .)',
+                'TYPE_D': '等号按钮(=)',
+                'TYPE_E': '科学功能按钮',
+                'TYPE_F': '科学计算器功能按钮',
+                'TYPE_G': '科学计算器运算符按钮',
+                'TYPE_H': '科学计算器数字按钮',
+                'TYPE_I': '科学计算器等号按钮'
+            };
+            
+            // 分类按钮
+            const buttonsByType = {};
+            
+            theme.buttons.forEach(button => {
+                if (!buttonsByType[button.type]) {
+                    buttonsByType[button.type] = [];
+                }
+                
+                buttonsByType[button.type].push(button);
+            });
+            
+            // 渲染每种类型的按钮
+            let buttonsHtml = '';
+            
+            Object.keys(buttonsByType).forEach(type => {
+                const buttons = buttonsByType[type];
+                const typeDesc = buttonTypeDesc[type] || '未知类型按钮';
+                
+                buttonsHtml += `
+                    <div class="theme-detail-section" style="margin-bottom: 20px;">
+                        <div class="theme-detail-section-header">
+                            <h3>${typeDesc}</h3>
+                        </div>
+                        <div class="theme-detail-section-content">
+                            <div class="property-grid">
+                                ${buttons.map(button => renderButtonDetail(button)).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return buttonsHtml;
+        }
+        
+        // 渲染单个按钮详情
+        function renderButtonDetail(button) {
+            console.log('按钮数据:', button); // 调试用，查看按钮数据
+            
+            // 判断使用图片的依据应该是直接检查按钮是否有图片URLs
+            const hasImage = button.pressed_image || button.released_image;
+            // 判断是否有声音
+            const hasSound = button.sound;
+            
+            let soundHtml = '';
+            if (hasSound) {
+                soundHtml = `
+                    <div class="property-item">
+                        <span class="property-label">按钮音效</span>
+                        <div class="sound-preview">
+                            <audio src="${button.sound}" controls class="sound-player"></audio>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="property-item">
+                    <span class="property-label">按钮ID</span>
+                    <span class="property-value">${button.id}</span>
+                </div>
+                
+                <div class="property-item">
+                    <span class="property-label">使用图片</span>
+                    <span class="property-value">${hasImage ? '是' : '否'}</span>
+                </div>
+                
+                ${hasImage ? 
+                    `<div class="property-item">
+                        <span class="property-label">按下状态图片</span>
+                        ${button.pressed_image ? 
+                            `<img src="${button.pressed_image}" alt="按下状态" style="max-width: 100px; margin-top: 10px;">` : 
+                            '<span class="property-value">无</span>'}
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">释放状态图片</span>
+                        ${button.released_image ? 
+                            `<img src="${button.released_image}" alt="释放状态" style="max-width: 100px; margin-top: 10px;">` : 
+                            '<span class="property-value">无</span>'}
+                    </div>` : 
+                    `<div class="property-item">
+                        <span class="property-label">按下状态颜色</span>
+                        <span class="property-value">
+                            <span class="color-preview" style="background-color: ${button.pressed_color || '#D0D0D0'};"></span>
+                            ${button.pressed_color || '#D0D0D0'}
+                        </span>
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">释放状态颜色</span>
+                        <span class="property-value">
+                            <span class="color-preview" style="background-color: ${button.released_color || '#E0E0E0'};"></span>
+                            ${button.released_color || '#E0E0E0'}
+                        </span>
+                    </div>
+                    <div class="property-item">
+                        <span class="property-label">颜色透明度</span>
+                        <span class="property-value">${button.color_opacity || 1}</span>
+                    </div>`
+                }
+                
+                <div class="property-item">
+                    <span class="property-label">字体颜色</span>
+                    <span class="property-value">
+                        <span class="color-preview" style="background-color: ${button.font_color || '#000000'};"></span>
+                        ${button.font_color || '#000000'}
+                    </span>
+                </div>
+                
+                <div class="property-item">
+                    <span class="property-label">字体大小</span>
+                    <span class="property-value">${button.font_size || '18'}px</span>
+                </div>
+                
+                ${soundHtml}
+                
+                <div class="property-item">
+                    <span class="property-label">预览</span>
+                    ${hasImage && button.released_image ? 
+                        `<img src="${button.released_image}" alt="按钮预览" style="max-width: 150px; margin-top: 10px; border: 1px solid #ddd; border-radius: 4px;">` :
+                        `<div class="button-preview" style="background-color: ${button.released_color || '#E0E0E0'}; color: ${button.font_color || '#000000'}; font-size: ${button.font_size || '18'}px;">
+                            ${button.type === 'TYPE_D' ? '=' : (button.type === 'TYPE_C' ? '7' : (button.type === 'TYPE_B' ? '+' : 'AC'))}
+                        </div>`
+                    }
+                </div>
+            `;
+        }
+        
+        // 确认删除主题
+        function confirmDeleteTheme(themeId) {
+            if (confirm('确定要删除这个主题吗？此操作不可撤销。')) {
+                deleteTheme(themeId);
+            }
+        }
+        
+        // 删除主题
+        async function deleteTheme(themeId) {
+            try {
+                // 显示加载指示器
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'block';
+                }
+                
+                console.log(`尝试删除主题ID: ${themeId}`);
+                
+                // 删除主题
+                const result = await themeAPI.deleteTheme(themeId);
+                console.log('删除主题结果:', result);
+                
+                // 显示成功消息
+                showSuccessMessage('主题已成功删除，正在返回主题列表...');
+                
+                // 删除成功，返回主题列表页面
+                // 等待短暂时间让用户看到成功消息
+                setTimeout(() => {
+                    console.log('跳转到主题列表页面');
+                    window.location.href = 'index.html?deleted=true';
+                }, 1500);
+            } catch (error) {
+                console.error('删除主题失败:', error);
+                
+                if (error.message && typeof error.message === 'string') {
+                    showErrorMessage(`删除主题失败: ${error.message}`);
+                } else {
+                    // 通用错误信息
+                    showErrorMessage('删除主题失败，请稍后再试');
+                }
+                
+                // 即使出错也刷新页面，以防实际上删除已经成功
+                setTimeout(() => {
+                    console.log('刷新页面以确认删除状态');
+                    window.location.reload();
+                }, 3000);
+            } finally {
+                // 隐藏加载指示器
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+            }
+        }
+        
+        // 侧边栏切换
+        document.getElementById('toggle-sidebar').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content-wrapper');
+            
+            sidebar.classList.toggle('active');
+            mainContent.classList.toggle('sidebar-active');
+        });
+        
+        // 页面加载完成后加载主题详情
+        document.addEventListener('DOMContentLoaded', loadThemeDetail);
+    </script>
+</body>
+</html> 

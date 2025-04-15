@@ -1,0 +1,18 @@
+[Unit]
+Description=ThemeCalc Admin Portal
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/themesManager_web
+ExecStart=/usr/bin/node /var/www/themesManager_web/server.js
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=themecalc-admin
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target 

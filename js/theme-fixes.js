@@ -24,6 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 修复7: 修复导航和按钮功能
     fixNavigationAndButtons();
 
+    // 修复8: 修复颜色吸盘和输入框同步功能
+    setupColorInputSync();
+
+    // 修复9: 确保所有按钮皮肤默认使用图片
+    setupDefaultButtonImageSetting();
+
+    // 修复10: 修复tabbar背景透明度滑块
+    setupTabbarOpacitySlider();
+
     // 修复图片预览功能
     initPreviewFunctions();
 });
@@ -226,8 +235,8 @@ function updateSummaryContent() {
         updateSummaryColorField('result_font_color', 'summary-result-font-color');
         updateSummaryField('result_font_size', 'summary-result-font-size', value => value + 'px');
 
-        // 按钮类型设置
-        updateButtonTypesSettings();
+        // 按钮类型设置 - 增强显示
+        updateButtonSummaryEnhanced();
 
         // TabBar设置
         const hasTabbarBgImage = document.getElementById('tabbar_bg_image_option').checked;
@@ -239,11 +248,12 @@ function updateSummaryContent() {
         updateSummaryColorField('tabbar_background_color', 'summary-tabbar-bg-color');
         updateSummaryImageField('tabbar-background-preview', 'summary-tabbar-bg-image');
         updateSummaryField('tabbar_opacity', 'summary-tabbar-opacity');
-        updateSummaryColorField('tabbar_font_color', 'summary-tabbar-font-color');
         updateSummaryField('tabbar_font_size', 'summary-tabbar-font-size', value => value + 'px');
+        updateSummaryColorField('tabbar_selected_font_color', 'summary-tabbar-selected-font-color');
+        updateSummaryColorField('tabbar_unselected_font_color', 'summary-tabbar-unselected-font-color');
         
-        // TabBar图标设置
-        updateTabbarIconsSettings();
+        // TabBar图标设置 - 增强显示
+        updateTabbarIconsSettingsEnhanced();
     } catch (error) {
         console.error('更新摘要内容失败:', error);
     }
@@ -306,220 +316,264 @@ function updateSummaryImageField(sourceId, targetId) {
 }
 
 /**
- * 更新按钮类型设置摘要
+ * 增强按钮设置摘要显示
  */
-function updateButtonTypesSettings() {
-    const buttonTypesList = document.getElementById('summary-button-types-list');
-    const buttonTypesDetails = document.getElementById('summary-button-types-details');
-    
-    if (!buttonTypesList || !buttonTypesDetails) return;
-    
-    buttonTypesList.innerHTML = '';
-    buttonTypesDetails.innerHTML = '';
-    
+function updateButtonSummaryEnhanced() {
     const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-    const buttonTypeDesc = {
-        'A': '功能按钮(AC, ±, %)',
-        'B': '运算符按钮(÷, ×, -, +)',
-        'C': '数字按钮(0-9, .)',
-        'D': '等号按钮(=)',
-        'E': '科学功能按钮',
-        'F': '科学计算器功能按钮',
-        'G': '科学计算器运算符按钮',
-        'H': '科学计算器数字按钮',
-        'I': '科学计算器等号按钮'
-    };
+    const buttonContainer = document.getElementById('summary-button-settings');
     
-    buttonTypes.forEach(type => {
-        const useImageCheckbox = document.getElementById(`button_TYPE_${type}_use_image`);
+    if (!buttonContainer) return;
+    
+    // 清空现有内容
+    buttonContainer.innerHTML = '';
+    
+    for (const type of buttonTypes) {
+        // 创建按钮类型容器
+        const buttonSection = document.createElement('div');
+        buttonSection.className = 'summary-section';
+        buttonSection.innerHTML = `<h4>类型${type}按钮设置</h4>`;
         
-        if (useImageCheckbox) {
-            // 为列表添加简短描述
-            const listItem = document.createElement('li');
-            listItem.innerHTML = `<strong>${type}类 - ${buttonTypeDesc[type]}</strong>`;
-            buttonTypesList.appendChild(listItem);
+        // 获取是否使用图片
+        const useImage = document.getElementById(`button_TYPE_${type}_use_image`).checked;
+        
+        // 创建内容容器
+        const content = document.createElement('div');
+        content.className = 'summary-content';
+        
+        // 添加使用图片标志
+        content.innerHTML += `
+            <div class="summary-item">
+                <div class="summary-label">使用图片:</div>
+                <div class="summary-value">${useImage ? '是' : '否'}</div>
+            </div>
+        `;
+        
+        if (useImage) {
+            // 添加图片预览
+            content.innerHTML += `
+                <div class="summary-item">
+                    <div class="summary-label">按下状态图片:</div>
+                    <div class="summary-value">
+                        <img src="${getImagePreviewURL(`button-${type.toLowerCase()}-pressed-preview`)}" class="preview-image">
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">释放状态图片:</div>
+                    <div class="summary-value">
+                        <img src="${getImagePreviewURL(`button-${type.toLowerCase()}-released-preview`)}" class="preview-image">
+                    </div>
+                </div>
+            `;
+        } else {
+            // 添加颜色显示
+            const pressedColor = document.getElementById(`button_TYPE_${type}_pressed_color`).value;
+            const releasedColor = document.getElementById(`button_TYPE_${type}_released_color`).value;
             
-            // 为详情部分添加详细描述
-            const detailSection = document.createElement('div');
-            detailSection.className = 'button-type-detail';
-            detailSection.innerHTML = `<h5>${type}类 - ${buttonTypeDesc[type]}</h5>`;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'button-type-detail-content';
-            
-            if (useImageCheckbox.checked) {
-                // 使用图片模式
-                contentDiv.innerHTML += `<p><strong>模式:</strong> 使用图片</p>`;
-                
-                // 获取图片预览
-                const pressedPreview = document.getElementById(`button-${type.toLowerCase()}-pressed-preview`);
-                const releasedPreview = document.getElementById(`button-${type.toLowerCase()}-released-preview`);
-                
-                if (pressedPreview && pressedPreview.src) {
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'button-image-preview';
-                    imgContainer.innerHTML = `
-                        <p><strong>按下状态图片:</strong></p>
-                        <img src="${pressedPreview.src}" style="max-width: 100px; max-height: 100px;">
-                    `;
-                    contentDiv.appendChild(imgContainer);
-                }
-                
-                if (releasedPreview && releasedPreview.src) {
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'button-image-preview';
-                    imgContainer.innerHTML = `
-                        <p><strong>释放状态图片:</strong></p>
-                        <img src="${releasedPreview.src}" style="max-width: 100px; max-height: 100px;">
-                    `;
-                    contentDiv.appendChild(imgContainer);
-                }
-            } else {
-                // 使用颜色模式
-                const pressedColor = document.getElementById(`button_TYPE_${type}_pressed_color`).value;
-                const releasedColor = document.getElementById(`button_TYPE_${type}_released_color`).value;
-                const fontColor = document.getElementById(`button_TYPE_${type}_font_color`).value;
-                const fontSize = document.getElementById(`button_TYPE_${type}_font_size`).value;
-                
-                contentDiv.innerHTML += `
-                    <p><strong>模式:</strong> 使用颜色</p>
-                    <p><strong>按下状态颜色:</strong> <span style="display:inline-block; width:20px; height:20px; background-color:${pressedColor}; vertical-align:middle;"></span> ${pressedColor}</p>
-                    <p><strong>释放状态颜色:</strong> <span style="display:inline-block; width:20px; height:20px; background-color:${releasedColor}; vertical-align:middle;"></span> ${releasedColor}</p>
-                    <p><strong>字体颜色:</strong> <span style="display:inline-block; width:20px; height:20px; background-color:${fontColor}; vertical-align:middle;"></span> ${fontColor}</p>
-                    <p><strong>字体大小:</strong> ${fontSize}px</p>
-                `;
-            }
-            
-            // 添加音效信息
-            const audioPlayer = document.getElementById(`sound-${type.toLowerCase()}-preview`);
-            if (audioPlayer && audioPlayer.src) {
-                contentDiv.innerHTML += `<p><strong>有设置按钮音效</strong></p>`;
-            } else {
-                contentDiv.innerHTML += `<p><strong>无按钮音效</strong></p>`;
-            }
-            
-            detailSection.appendChild(contentDiv);
-            buttonTypesDetails.appendChild(detailSection);
+            content.innerHTML += `
+                <div class="summary-item">
+                    <div class="summary-label">按下状态颜色:</div>
+                    <div class="summary-value">
+                        <span class="color-preview" style="background-color: ${pressedColor}"></span>
+                        ${pressedColor}
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">释放状态颜色:</div>
+                    <div class="summary-value">
+                        <span class="color-preview" style="background-color: ${releasedColor}"></span>
+                        ${releasedColor}
+                    </div>
+                </div>
+            `;
         }
-    });
-    
-    if (buttonTypesList.children.length === 0) {
-        buttonTypesList.innerHTML = '<li>未配置任何按钮类型</li>';
+        
+        // 添加字体设置
+        const fontColor = document.getElementById(`button_TYPE_${type}_font_color`).value;
+        const fontSize = document.getElementById(`button_TYPE_${type}_font_size`).value;
+        
+        content.innerHTML += `
+            <div class="summary-item">
+                <div class="summary-label">字体颜色:</div>
+                <div class="summary-value">
+                    <span class="color-preview" style="background-color: ${fontColor}"></span>
+                    ${fontColor}
+                </div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">字体大小:</div>
+                <div class="summary-value">${fontSize}px</div>
+            </div>
+        `;
+        
+        // 添加音效信息
+        const audioElement = document.getElementById(`sound-${type.toLowerCase()}-preview`);
+        const hasSound = audioElement && audioElement.src && !audioElement.src.endsWith('#');
+        
+        content.innerHTML += `
+            <div class="summary-item">
+                <div class="summary-label">按钮音效:</div>
+                <div class="summary-value">${hasSound ? '已设置' : '未设置'}</div>
+            </div>
+        `;
+        
+        // 将内容添加到按钮部分
+        buttonSection.appendChild(content);
+        
+        // 将按钮部分添加到容器
+        buttonContainer.appendChild(buttonSection);
     }
 }
 
 /**
- * 更新TabBar图标设置摘要
+ * 增强TabBar图标设置摘要显示
  */
-function updateTabbarIconsSettings() {
-    const tabbarIconsContainer = document.getElementById('summary-tabbar-icons');
-    if (!tabbarIconsContainer) return;
+function updateTabbarIconsSettingsEnhanced() {
+    const iconsContainer = document.getElementById('summary-tabbar-icons');
+    if (!iconsContainer) return;
     
-    tabbarIconsContainer.innerHTML = '';
+    // 清空现有内容
+    iconsContainer.innerHTML = '';
     
     // TabBar图标类型
-    const iconTypes = [
-        {id: 'home', name: '首页'},
-        {id: 'camera', name: '拍照'},
-        {id: 'voice', name: '语音'},
-        {id: 'theme', name: '主题'},
-        {id: 'profile', name: '个人中心'}
+    const tabbarIcons = [
+        { name: 'home', label: '首页' },
+        { name: 'camera', label: '相机' },
+        { name: 'voice', label: '语音' },
+        { name: 'theme', label: '主题' },
+        { name: 'profile', label: '个人' }
     ];
     
-    iconTypes.forEach(icon => {
-        const selectedPreview = document.getElementById(`tabbar-${icon.id}-selected-preview`);
-        const unselectedPreview = document.getElementById(`tabbar-${icon.id}-unselected-preview`);
+    for (const icon of tabbarIcons) {
+        // 创建图标容器
+        const iconSection = document.createElement('div');
+        iconSection.className = 'summary-tabbar-icon';
         
-        // 只有当有预览图时才添加
-        if ((selectedPreview && selectedPreview.src) || (unselectedPreview && unselectedPreview.src)) {
-            const iconItem = document.createElement('div');
-            iconItem.className = 'summary-icon-item';
-            
-            let iconHTML = `<h6>${icon.name}图标</h6><div class="summary-icon-images">`;
-            
-            if (selectedPreview && selectedPreview.src) {
-                iconHTML += `
-                    <div class="summary-icon-image">
-                        <img src="${selectedPreview.src}" alt="${icon.name}选中">
-                        <span>选中状态</span>
-                    </div>
-                `;
-            }
-            
-            if (unselectedPreview && unselectedPreview.src) {
-                iconHTML += `
-                    <div class="summary-icon-image">
-                        <img src="${unselectedPreview.src}" alt="${icon.name}未选中">
-                        <span>未选中状态</span>
-                    </div>
-                `;
-            }
-            
-            iconHTML += `</div>`;
-            iconItem.innerHTML = iconHTML;
-            
-            tabbarIconsContainer.appendChild(iconItem);
-        }
-    });
-    
-    if (tabbarIconsContainer.children.length === 0) {
-        tabbarIconsContainer.innerHTML = '<p>未设置任何TabBar图标</p>';
+        // 获取选中和未选中图标的图片预览
+        const selectedPreview = document.getElementById(`tabbar-${icon.name}-selected-preview`);
+        const unselectedPreview = document.getElementById(`tabbar-${icon.name}-unselected-preview`);
+        
+        const hasSelected = selectedPreview && selectedPreview.src && !selectedPreview.src.endsWith('#');
+        const hasUnselected = unselectedPreview && unselectedPreview.src && !unselectedPreview.src.endsWith('#');
+        
+        iconSection.innerHTML = `
+            <h5>${icon.label}图标</h5>
+            <div class="summary-item">
+                <div class="summary-label">选中状态:</div>
+                <div class="summary-value">
+                    ${hasSelected ? 
+                      `<img src="${selectedPreview.src}" class="preview-image small-preview">` : 
+                      '未设置'}
+                </div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">未选中状态:</div>
+                <div class="summary-value">
+                    ${hasUnselected ? 
+                      `<img src="${unselectedPreview.src}" class="preview-image small-preview">` : 
+                      '未设置'}
+                </div>
+            </div>
+        `;
+        
+        // 添加到容器
+        iconsContainer.appendChild(iconSection);
     }
+}
+
+/**
+ * 获取图片预览URL
+ */
+function getImagePreviewURL(previewId) {
+    const preview = document.getElementById(previewId);
+    return (preview && preview.src && !preview.src.endsWith('#')) ? 
+        preview.src : 'images/no-image.png';
 }
 
 /**
  * 修复5: 修复确认提交功能
  */
 function fixSubmitButton() {
-    const form = document.getElementById('theme-creation-form');
-    const submitBtn = document.querySelector('.submit-btn');
-    
-    if (form && submitBtn) {
-        // 绑定提交事件
-        form.addEventListener('submit', handleFormSubmit);
-        console.log('已应用表单提交功能修复');
+    // 编辑页面的提交按钮
+    const editSubmitButton = document.getElementById('edit-submit-button');
+    if (editSubmitButton) {
+        console.log('找到编辑页面的提交按钮，绑定事件');
+        editSubmitButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('编辑页面确认提交按钮被点击');
+            
+            // 直接使用API调用而不是表单提交
+            const themeId = document.getElementById('theme-id').value;
+            if (!themeId) {
+                showErrorMessage('未找到主题ID');
+                return;
+            }
+            
+            const formData = new FormData(document.getElementById('theme-edit-form'));
+            updateThemeDirectly(themeId, formData);
+        });
     }
+    
+    // 创建页面的提交按钮
+    const createSubmitButton = document.getElementById('submit-theme-button');
+    if (createSubmitButton) {
+        console.log('找到创建页面的提交按钮，绑定事件');
+        createSubmitButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('创建页面确认提交按钮被点击');
+            
+            const formData = new FormData(document.getElementById('theme-creation-form'));
+            createThemeDirectly(formData);
+        });
+    }
+    
+    console.log('已应用提交按钮修复');
 }
 
-/**
- * 处理表单提交
- */
-async function handleFormSubmit(e) {
-    e.preventDefault();
+// 直接调用API更新主题
+async function updateThemeDirectly(themeId, formData) {
+    // 防止重复提交
+    const submitButton = document.getElementById('edit-submit-button');
+    if (submitButton.disabled) {
+        console.log('提交按钮已禁用，正在处理上一次提交...');
+        return;
+    }
+    
+    // 禁用提交按钮，防止重复提交
+    submitButton.disabled = true;
+    submitButton.textContent = '提交中...';
     
     try {
-        console.log('表单提交中...');
+        console.log('直接调用API更新主题', themeId);
+        
         // 显示加载指示器
         document.getElementById('loading-indicator').style.display = 'block';
         
-        // 获取表单数据
-        const formData = new FormData(document.getElementById('theme-creation-form'));
-        
-        // 获取主题ID
-        const themeId = document.getElementById('theme-id').value;
-        
-        let response;
-        if (themeId) {
-            console.log(`正在更新主题ID: ${themeId}`);
-            // 更新现有主题
-            response = await fetch(`/api/skin/update/${themeId}`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                }
-            });
+        // 规范化字段名（如果有FieldNormalizer可用）
+        let processedFormData;
+        if (window.FieldNormalizer) {
+            console.log('使用FieldNormalizer规范化字段...');
+            processedFormData = window.FieldNormalizer.normalizeFormData(formData);
         } else {
-            console.log('正在创建新主题');
-            // 创建新主题 - 修改为正确的API端点
-            response = await fetch('/api/skin/create', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                }
-            });
+            console.log('未找到FieldNormalizer，使用原始表单数据');
+            processedFormData = formData;
         }
+        
+        // 使用正确的API端点和完整URL
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            throw new Error('未登录或认证令牌缺失，请重新登录');
+        }
+        
+        const response = await fetch(`https://www.themecalc.com/api/skin/${themeId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            },
+            body: processedFormData,
+            credentials: 'omit',
+            mode: 'cors'
+        });
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -527,103 +581,130 @@ async function handleFormSubmit(e) {
         }
         
         const result = await response.json();
-        console.log('提交成功:', result);
+        console.log('更新主题成功:', result);
         
         // 显示成功消息
-        const messageElement = document.getElementById('message');
-        messageElement.textContent = themeId ? '主题更新成功' : '主题创建成功';
-        messageElement.className = 'message success';
-        messageElement.style.display = 'block';
+        showSuccessMessage('主题更新成功！');
         
-        // 重置表单数据
-        const themeForm = document.getElementById('theme-creation-form');
-        if (themeForm) {
-            themeForm.reset();
-            
-            // 清除主题ID
-            if (document.getElementById('theme-id')) {
-                document.getElementById('theme-id').value = '';
-            }
-            
-            // 清除所有图片预览
-            document.querySelectorAll('.image-preview').forEach(preview => {
-                preview.src = '';
-                preview.style.display = 'none';
-            });
-            
-            // 清除所有音频预览
-            document.querySelectorAll('.sound-player').forEach(player => {
-                player.src = '';
-                player.style.display = 'none';
-            });
-            
-            // 重置单选按钮状态
-            if (document.getElementById('global_bg_color_option')) {
-                document.getElementById('global_bg_color_option').checked = true;
-                document.getElementById('global_bg_image_option').checked = false;
-                document.getElementById('global_bg_color_group').style.display = 'block';
-                document.getElementById('global_bg_image_group').style.display = 'none';
-                document.getElementById('has_global_background_image').value = 'false';
-            }
-            
-            if (document.getElementById('result_bg_color_option')) {
-                document.getElementById('result_bg_color_option').checked = true;
-                document.getElementById('result_bg_image_option').checked = false;
-                document.getElementById('result_bg_color_group').style.display = 'block';
-                document.getElementById('result_bg_image_group').style.display = 'none';
-                document.getElementById('result_use_image').value = 'false';
-            }
-            
-            if (document.getElementById('tabbar_bg_color_option')) {
-                document.getElementById('tabbar_bg_color_option').checked = true;
-                document.getElementById('tabbar_bg_image_option').checked = false;
-                document.getElementById('tabbar_bg_color_group').style.display = 'block';
-                document.getElementById('tabbar_bg_image_group').style.display = 'none';
-                document.getElementById('tabbar_use_background_image').value = 'false';
-            }
-            
-            // 重置所有按钮类型设置
-            const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-            buttonTypes.forEach(type => {
-                const useImageCheckbox = document.getElementById(`button_TYPE_${type}_use_image`);
-                if (useImageCheckbox) {
-                    useImageCheckbox.checked = false;
-                    updateButtonTypeVisibility(type, false);
-                }
-            });
-        }
-        
-        // 3秒后隐藏消息并返回主题列表页
+        // 跳转到查看页面
         setTimeout(() => {
-            messageElement.style.display = 'none';
-            
-            // 关闭创建页面，返回列表页
-            document.getElementById('theme-create-page').style.display = 'none';
-            document.getElementById('theme-list-page').style.display = 'block';
-            
-            // 更新导航状态
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            document.querySelector('[data-target="theme-list-page"]').classList.add('active');
-            
-            // 重新加载主题列表
-            if (typeof loadThemes === 'function') {
-                loadThemes();
-            }
-        }, 3000);
+            window.location.href = `detail.html?id=${themeId}`;
+        }, 1500);
     } catch (error) {
-        console.error('提交失败:', error);
+        console.error('更新主题失败:', error);
+        showErrorMessage(`更新主题失败: ${error.message}`);
         
-        // 显示错误消息
-        const messageElement = document.getElementById('message');
-        messageElement.textContent = `提交失败: ${error.message}`;
-        messageElement.className = 'message error';
-        messageElement.style.display = 'block';
+        // 重新启用提交按钮
+        submitButton.disabled = false;
+        submitButton.textContent = '确认提交';
     } finally {
         // 隐藏加载指示器
         document.getElementById('loading-indicator').style.display = 'none';
     }
+}
+
+// 直接调用API创建主题
+async function createThemeDirectly(formData) {
+    // 防止重复提交
+    const submitButton = document.getElementById('submit-theme-button');
+    if (submitButton.disabled) {
+        console.log('提交按钮已禁用，正在处理上一次提交...');
+        return;
+    }
+    
+    // 禁用提交按钮，防止重复提交
+    submitButton.disabled = true;
+    submitButton.textContent = '提交中...';
+    
+    try {
+        console.log('直接调用API创建主题');
+        
+        // 显示加载指示器
+        document.getElementById('loading-indicator').style.display = 'block';
+        
+        // 规范化字段名（如果有FieldNormalizer可用）
+        let processedFormData;
+        if (window.FieldNormalizer) {
+            console.log('使用FieldNormalizer规范化字段...');
+            processedFormData = window.FieldNormalizer.normalizeFormData(formData);
+        } else {
+            console.log('未找到FieldNormalizer，使用原始表单数据');
+            processedFormData = formData;
+        }
+        
+        // 使用正确的API端点和完整URL
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            throw new Error('未登录或认证令牌缺失，请重新登录');
+        }
+        
+        const response = await fetch('https://www.themecalc.com/api/skin/create', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            },
+            body: processedFormData,
+            credentials: 'omit',
+            mode: 'cors'
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`服务器响应错误: ${response.status} ${errorData.message || response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('创建主题成功:', result);
+        
+        // 显示成功消息
+        showSuccessMessage('主题创建成功！');
+        
+        // 重定向到主题列表页面
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1500);
+    } catch (error) {
+        console.error('创建主题失败:', error);
+        showErrorMessage(`创建主题失败: ${error.message}`);
+        
+        // 重新启用提交按钮
+        submitButton.disabled = false;
+        submitButton.textContent = '确认提交';
+    } finally {
+        // 隐藏加载指示器
+        document.getElementById('loading-indicator').style.display = 'none';
+    }
+}
+
+// 显示错误消息
+function showErrorMessage(message) {
+    const messageElement = document.getElementById('message');
+    if (!messageElement) return;
+    
+    messageElement.textContent = message;
+    messageElement.className = 'message error';
+    messageElement.style.display = 'block';
+    
+    // 5秒后隐藏消息
+    setTimeout(() => {
+        messageElement.style.display = 'none';
+    }, 5000);
+}
+
+// 显示成功消息
+function showSuccessMessage(message) {
+    const messageElement = document.getElementById('message');
+    if (!messageElement) return;
+    
+    messageElement.textContent = message;
+    messageElement.className = 'message success';
+    messageElement.style.display = 'block';
+    
+    // 5秒后隐藏消息
+    setTimeout(() => {
+        messageElement.style.display = 'none';
+    }, 5000);
 }
 
 /**
@@ -641,20 +722,8 @@ function fixCreateThemePage() {
                 e.preventDefault();
                 console.log('主题管理按钮被点击');
                 
-                // 显示主题列表页面
-                document.getElementById('theme-list-page').style.display = 'block';
-                document.getElementById('theme-create-page').style.display = 'none';
-                
-                // 更新导航状态
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-                themeListLink.classList.add('active');
-                
-                // 重新加载主题列表
-                if (typeof loadThemes === 'function') {
-                    loadThemes();
-                }
+                // 重定向到index.html
+                window.location.href = 'index.html';
             });
         }
         
@@ -665,21 +734,8 @@ function fixCreateThemePage() {
             newThemeButton.addEventListener('click', () => {
                 console.log('新主题按钮被点击');
                 
-                // 显示主题创建页面
-                document.getElementById('theme-list-page').style.display = 'none';
-                document.getElementById('theme-create-page').style.display = 'block';
-                
-                // 显示第一步
-                showCreateThemeFirstStep();
-                
-                // 更新导航状态
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-                document.getElementById('theme-create-link').classList.add('active');
-                
-                // 激活子菜单
-                document.getElementById('theme-create-submenu').classList.add('submenu-active');
+                // 重定向到create.html
+                window.location.href = 'create.html';
             });
         }
         
@@ -691,21 +747,8 @@ function fixCreateThemePage() {
                 
                 console.log('主题创建链接被点击');
                 
-                // 显示主题创建页面
-                document.getElementById('theme-list-page').style.display = 'none';
-                document.getElementById('theme-create-page').style.display = 'block';
-                
-                // 更新导航状态
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-                themeCreateLink.classList.add('active');
-                
-                // 激活子菜单
-                document.getElementById('theme-create-submenu').classList.add('submenu-active');
-                
-                // 重置表单和显示第一步
-                showCreateThemeFirstStep();
+                // 重定向到create.html
+                window.location.href = 'create.html';
             });
         }
         
@@ -714,94 +757,71 @@ function fixCreateThemePage() {
 }
 
 /**
- * 显示主题创建的第一步
- */
-function showCreateThemeFirstStep() {
-    // 重置步骤导航状态
-    document.querySelectorAll('.step-link').forEach(link => {
-        link.classList.remove('completed', 'active');
-    });
-    document.querySelector('.step-link[data-step="basic-info-step"]').classList.add('active');
-    
-    // 重置所有步骤内容
-    document.querySelectorAll('.step-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    
-    // 显示第一步
-    document.getElementById('basic-info-step').classList.add('active');
-    
-    // 更新子菜单状态
-    document.querySelectorAll('.submenu-link').forEach(link => {
-        link.classList.remove('active');
-    });
-    document.querySelector('.submenu-link[data-step="basic-info-step"]').classList.add('active');
-    
-    // 重置表单
-    try {
-        document.getElementById('theme-creation-form').reset();
-        // 清除主题ID
-        if (document.getElementById('theme-id')) {
-            document.getElementById('theme-id').value = '';
-        }
-    } catch (error) {
-        console.error('重置表单出错:', error);
-    }
-}
-
-/**
  * 修复7: 修复导航和按钮功能
  */
 function fixNavigationAndButtons() {
-    // 修复子菜单点击
-    document.querySelectorAll('.submenu-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+    // 修复左侧导航栏与右侧内容联动
+    const submenuItems = document.querySelectorAll('#theme-create-submenu .submenu-link');
+    const stepLinks = document.querySelectorAll('.step-link');
+    
+    // 为左侧导航项添加点击事件，确保与右侧步骤联动
+    submenuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // 更新子菜单状态
-            document.querySelectorAll('.submenu-link').forEach(l => l.classList.remove('active'));
+            // 获取目标步骤ID
+            const targetStep = this.getAttribute('data-step');
+            
+            // 移除所有活动状态
+            submenuItems.forEach(i => i.classList.remove('active'));
+            stepLinks.forEach(l => l.classList.remove('active'));
+            
+            // 添加活动状态到当前项
             this.classList.add('active');
             
-            // 确保主题创建页面显示
-            document.getElementById('theme-list-page').style.display = 'none';
-            document.getElementById('theme-create-page').style.display = 'block';
+            // 为对应的步骤导航添加活动状态
+            stepLinks.forEach(link => {
+                if (link.getAttribute('data-step') === targetStep) {
+                    link.classList.add('active');
+                }
+            });
             
-            // 显示对应步骤
-            const targetStep = this.getAttribute('data-step');
-            if (window.originalShowStep && typeof window.originalShowStep === 'function') {
-                window.originalShowStep(targetStep);
-            } else {
-                showStep(targetStep);
-            }
+            // 显示对应的内容区域
+            showStepSafely(targetStep);
             
-            // 更新导航状态
-            document.querySelectorAll('.nav-link').forEach(navLink => navLink.classList.remove('active'));
-            document.getElementById('theme-create-link').classList.add('active');
-            
-            // 确保子菜单展开
-            document.getElementById('theme-create-submenu').classList.add('submenu-active');
+            // 滚动到内容区域顶部
+            document.querySelector('.main-content').scrollIntoView({ behavior: 'smooth' });
         });
     });
     
+    // 反向联动：当点击步骤导航时，更新左侧导航状态
+    stepLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            const targetStep = this.getAttribute('data-step');
+            
+            // 更新左侧导航状态
+            submenuItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-step') === targetStep) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    });
+    
+    // 修改按钮类型设置显示方式 - 全部展开，依次往下排列
+    setupButtonsDisplay();
+    
     // 修复下一步按钮
     document.querySelectorAll('.next-step').forEach(button => {
-        button.addEventListener('click', async function() {
-            const currentStep = this.closest('.step-content').id;
+        button.addEventListener('click', function() {
             const nextStep = this.getAttribute('data-next');
+            if (!nextStep) return;
             
-            console.log(`要从 ${currentStep} 前进到 ${nextStep}`);
-            
-            // 尝试保存当前步骤数据
-            if (await saveStepData(currentStep)) {
-                // 标记当前步骤为已完成
-                document.querySelector(`.step-link[data-step="${currentStep}"]`).classList.add('completed');
-                
-                // 显示下一步
-                if (window.originalShowStep && typeof window.originalShowStep === 'function') {
-                    window.originalShowStep(nextStep);
-                } else {
-                    showStep(nextStep);
-                }
+            try {
+                showStepSafely(nextStep);
+            } catch (e) {
+                console.error('切换到下一步失败:', e);
             }
         });
     });
@@ -810,103 +830,230 @@ function fixNavigationAndButtons() {
     document.querySelectorAll('.prev-step').forEach(button => {
         button.addEventListener('click', function() {
             const prevStep = this.getAttribute('data-prev');
-            console.log(`返回到上一步: ${prevStep}`);
+            if (!prevStep) return;
             
-            if (window.originalShowStep && typeof window.originalShowStep === 'function') {
-                window.originalShowStep(prevStep);
-            } else {
-                showStep(prevStep);
+            try {
+                showStepSafely(prevStep);
+            } catch (e) {
+                console.error('切换到上一步失败:', e);
             }
         });
     });
     
-    // 保留原有的showStep函数
-    if (typeof window.showStep === 'function' && window.showStep !== window.ourShowStep) {
-        window.originalShowStep = window.showStep;
-        console.log('已保存原始showStep函数');
-    }
-    
-    // 替换为我们的showStep函数
-    window.showStep = window.ourShowStep = function(stepId) {
-        console.log('调用我们的showStep:', stepId);
-        
-        try {
-            // 更新步骤导航状态
-            document.querySelectorAll('.step-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            document.querySelector(`.step-link[data-step="${stepId}"]`).classList.add('active');
-            
-            // 更新步骤内容显示
-            document.querySelectorAll('.step-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(stepId).classList.add('active');
-            
-            // 更新子菜单状态
-            document.querySelectorAll('.submenu-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            document.querySelector(`.submenu-link[data-step="${stepId}"]`).classList.add('active');
-            
-            // 如果是最后一步，更新摘要内容
-            if (stepId === 'summary-step') {
-                updateSummaryContent();
-            }
-        } catch (error) {
-            console.error('showStep执行错误:', error);
-        }
-        
-        return false;
-    };
+    // 修复步骤工具
+    setupStepTools();
     
     console.log('已应用导航和按钮功能修复');
 }
 
-/**
- * 保存步骤数据
- */
-async function saveStepData(currentStep) {
+// 我们自己的showStep实现
+window.ourShowStep = function(stepId) {
+    console.log('调用我们的showStep:', stepId);
+    
+    // 隐藏所有步骤内容
+    document.querySelectorAll('.step-content').forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    // 显示目标步骤内容
+    const targetStep = document.getElementById(stepId);
+    if (targetStep) {
+        targetStep.classList.add('active');
+    } else {
+        console.warn(`未找到步骤内容: #${stepId}`);
+        return;
+    }
+    
+    // 更新步骤导航状态
+    document.querySelectorAll('.step-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-step') === stepId) {
+            link.classList.add('active');
+        }
+    });
+    
+    // 安全地更新子菜单链接状态
     try {
-        console.log(`准备保存步骤: ${currentStep} 的数据`);
+        const currentPage = getCurrentPage();
+        const submenuSelector = currentPage === 'create' ? '#theme-create-submenu' : '#theme-edit-submenu';
+        const submenu = document.querySelector(submenuSelector);
         
-        // 显示加载指示器
-        document.getElementById('step-loading').style.display = 'block';
-        
-        // 如果是tabbar-settings-step，预先更新摘要
-        if (currentStep === 'tabbar-settings-step') {
-            updateSummaryContent();
+        // 只有当子菜单存在时才尝试更新
+        if (submenu) {
+            const submenuLinks = submenu.querySelectorAll('.submenu-link');
+            submenuLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-step') === stepId) {
+                    link.classList.add('active');
+                }
+            });
+        }
+    } catch (e) {
+        console.log('子菜单不存在或无法更新:', e);
+    }
+    
+    console.log(`已切换到步骤: ${stepId}`);
+}
+
+// 替换为我们的showStep函数
+window.showStep = window.ourShowStep;
+
+// 获取当前页面类型
+function getCurrentPage() {
+    if (window.location.pathname.includes('create.html')) {
+        return 'create';
+    } else if (window.location.pathname.includes('edit.html')) {
+        return 'edit';
+    }
+    return 'unknown';
+}
+
+// 设置步骤工具
+function setupStepTools() {
+    try {
+        // 绑定创建主题表单的提交事件
+        const createForm = document.getElementById('theme-creation-form');
+        if (createForm) {
+            createForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitButton = document.getElementById('submit-theme-button');
+                if (submitButton) {
+                    submitButton.click(); // 手动触发按钮点击
+                }
+            });
         }
         
-        // 这里只是模拟保存，实际应用中可以发送到服务器
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // 显示成功消息
-        const messageElement = document.getElementById('message');
-        messageElement.textContent = `${currentStep} 数据已保存`;
-        messageElement.className = 'message success';
-        messageElement.style.display = 'block';
-        
-        // 3秒后隐藏消息
-        setTimeout(() => {
-            messageElement.style.display = 'none';
-        }, 3000);
-        
-        return true;
+        // 绑定编辑主题表单的提交事件
+        const editForm = document.getElementById('theme-edit-form');
+        if (editForm) {
+            editForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitButton = document.getElementById('edit-submit-button');
+                if (submitButton) {
+                    submitButton.click(); // 手动触发按钮点击
+                }
+            });
+        }
     } catch (error) {
-        console.error('保存步骤数据失败:', error);
-        
-        // 显示错误消息
-        const messageElement = document.getElementById('message');
-        messageElement.textContent = `保存失败: ${error.message}`;
-        messageElement.className = 'message error';
-        messageElement.style.display = 'block';
-        
-        return false;
-    } finally {
-        // 隐藏加载指示器
-        document.getElementById('step-loading').style.display = 'none';
+        console.error('设置步骤工具时出错:', error);
     }
+}
+
+/**
+ * 修复8: 颜色吸盘和输入框同步功能
+ */
+function setupColorInputSync() {
+    // 查找所有颜色输入组
+    const colorGroups = document.querySelectorAll('.color-input-group');
+    
+    colorGroups.forEach(group => {
+        const colorPicker = group.querySelector('input[type="color"]');
+        const textInput = group.querySelector('input[type="text"]');
+        
+        if (!colorPicker || !textInput) return;
+        
+        // 初始同步颜色值到文本输入框
+        textInput.value = colorPicker.value;
+        
+        // 当颜色选择器变化时，更新文本输入框
+        colorPicker.addEventListener('input', () => {
+            textInput.value = colorPicker.value.toUpperCase();
+        });
+        
+        // 当文本输入框变化时，更新颜色选择器
+        textInput.addEventListener('input', () => {
+            // 确保格式正确
+            let color = textInput.value;
+            if (color.startsWith('#') && (color.length === 4 || color.length === 7)) {
+                colorPicker.value = color;
+            } else if (!color.startsWith('#') && (color.length === 3 || color.length === 6)) {
+                // 自动添加井号
+                color = '#' + color;
+                textInput.value = color.toUpperCase();
+                colorPicker.value = color;
+            }
+        });
+        
+        // 当文本输入框失去焦点时，确保格式正确
+        textInput.addEventListener('blur', () => {
+            let color = textInput.value;
+            
+            // 如果为空，使用当前颜色选择器的值
+            if (!color) {
+                textInput.value = colorPicker.value.toUpperCase();
+                return;
+            }
+            
+            // 确保有#前缀
+            if (!color.startsWith('#')) {
+                color = '#' + color;
+            }
+            
+            // 验证颜色格式
+            const isValidColor = /^#([0-9A-F]{3}){1,2}$/i.test(color);
+            
+            if (isValidColor) {
+                // 格式化为大写
+                textInput.value = color.toUpperCase();
+                colorPicker.value = color;
+            } else {
+                // 恢复为色彩选择器的值
+                textInput.value = colorPicker.value.toUpperCase();
+            }
+        });
+    });
+}
+
+/**
+ * 修复9: 确保所有按钮皮肤默认使用图片
+ */
+function setupDefaultButtonImageSetting() {
+    // 所有按钮类型
+    const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+    
+    buttonTypes.forEach(type => {
+        const useImageCheckbox = document.getElementById(`button_TYPE_${type}_use_image`);
+        if (useImageCheckbox) {
+            // 设置为选中状态
+            useImageCheckbox.checked = true;
+            
+            // 触发一次change事件，确保相关UI也正确更新
+            const event = new Event('change');
+            useImageCheckbox.dispatchEvent(event);
+            
+            // 更新按钮类型的可见性
+            if (typeof updateButtonTypeVisibility === 'function') {
+                updateButtonTypeVisibility(type, true);
+            }
+        }
+    });
+    
+    console.log('已将所有按钮皮肤默认设置为使用图片');
+}
+
+/**
+ * 修复10: Tabbar背景透明度滑块联动
+ */
+function setupTabbarOpacitySlider() {
+    const slider = document.getElementById('tabbar_opacity');
+    const valueDisplay = document.getElementById('tabbar_opacity_value');
+    
+    if (!slider || !valueDisplay) return;
+    
+    // 确保初始值正确显示
+    valueDisplay.textContent = slider.value;
+    
+    // 绑定输入事件，实时更新显示值
+    slider.addEventListener('input', function() {
+        valueDisplay.textContent = this.value;
+    });
+    
+    // 绑定change事件，确保离开滑块后值也会更新
+    slider.addEventListener('change', function() {
+        valueDisplay.textContent = this.value;
+    });
+    
+    console.log('已修复tabbar背景透明度滑块联动');
 }
 
 /**
@@ -967,4 +1114,60 @@ function setupImagePreview(inputId, previewId) {
     
     // 标记已设置事件处理程序
     input.dataset.previewHandlerSet = 'true';
+}
+
+/**
+ * 设置按钮类型显示方式 - 全部展开
+ */
+function setupButtonsDisplay() {
+    // 查找按钮类型导航和设置区域
+    const buttonTypeLinks = document.querySelectorAll('.button-type-link');
+    const buttonTypeSettings = document.querySelectorAll('.button-type-settings');
+    
+    // 移除默认的隐藏样式
+    buttonTypeSettings.forEach(setting => {
+        setting.style.display = 'block';
+    });
+    
+    // 修改按钮类型导航点击行为，改为滚动到对应位置而不是切换显示/隐藏
+    buttonTypeLinks.forEach(link => {
+        // 移除原有点击事件
+        const newLink = link.cloneNode(true);
+        link.parentNode.replaceChild(newLink, link);
+        
+        // 添加新的点击事件 - 滚动到对应位置
+        newLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 移除所有链接的活动状态
+            buttonTypeLinks.forEach(l => l.classList.remove('active'));
+            
+            // 添加活动状态到当前链接
+            this.classList.add('active');
+            
+            // 获取目标设置区域ID
+            const targetId = this.getAttribute('data-button-type') + '-settings';
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                // 滚动到目标位置，略微上方一点以便阅读
+                const offset = 20;
+                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - offset;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // 添加设置区域之间的视觉分隔，使其更易区分
+    buttonTypeSettings.forEach(setting => {
+        setting.style.marginBottom = '40px';
+        setting.style.paddingBottom = '30px';
+        setting.style.borderBottom = '1px dashed #ccc';
+    });
+    
+    console.log('已修改按钮类型设置为全部展开模式');
 } 

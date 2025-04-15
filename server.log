@@ -1,0 +1,5 @@
+[HPM] Proxy created: /api  -> https://www.themecalc.com
+[HPM] Proxy rewrite rule created: "^/api" ~> "/api"
+[HPM] Subscribed to http-proxy events: [ 'error', 'close' ]
+主题管理系统已启动在 http://admin.themecalc.com:5005
+API请求将被代理到 https://www.themecalc.com/api
