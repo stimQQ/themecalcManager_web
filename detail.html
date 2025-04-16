@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>主题详情 - 计算器皮肤主题管理系统</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="/favicon.ico.png" type="image/png">
     <style>
         /* 主题详情页特有样式 */
         .theme-detail-header {
@@ -580,6 +581,11 @@
                 </div>
                 
                 <div class="property-item">
+                    <span class="property-label">字体透明度</span>
+                    <span class="property-value">${button.font_opacity || 1}</span>
+                </div>
+                
+                <div class="property-item">
                     <span class="property-label">字体大小</span>
                     <span class="property-value">${button.font_size || '18'}px</span>
                 </div>
@@ -590,7 +596,7 @@
                     <span class="property-label">预览</span>
                     ${hasImage && button.released_image ? 
                         `<img src="${button.released_image}" alt="按钮预览" style="max-width: 150px; margin-top: 10px; border: 1px solid #ddd; border-radius: 4px;">` :
-                        `<div class="button-preview" style="background-color: ${button.released_color || '#E0E0E0'}; color: ${button.font_color || '#000000'}; font-size: ${button.font_size || '18'}px;">
+                        `<div class="button-preview" style="background-color: ${button.released_color || '#E0E0E0'}; color: ${button.font_color || '#000000'}; font-size: ${button.font_size || '18'}px; opacity: ${button.font_opacity || 1};">
                             ${button.type === 'TYPE_D' ? '=' : (button.type === 'TYPE_C' ? '7' : (button.type === 'TYPE_B' ? '+' : 'AC'))}
                         </div>`
                     }

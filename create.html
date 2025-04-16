@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>创建主题 - 计算器皮肤主题管理系统</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="/favicon.ico.png" type="image/png">
 </head>
 <body>
     <!-- 加载指示器 -->
@@ -218,8 +219,8 @@
                                     <div class="color-input-group">
                                         <input type="color" id="top_nav_text_unselected_color" name="top_nav_text_unselected_color" value="#AAAAAA">
                                         <input type="text" id="top_nav_text_unselected_color_text" placeholder="#AAAAAA" maxlength="7">
-                                        <span class="form-text text-muted">建议与导航选中颜色一致</span>
                                     </div>
+                                    <span class="form-tip">建议与导航选中颜色一致</span>
                                 </div>
                                 
                                 <div class="step-buttons">
@@ -333,14 +334,20 @@
                                     <div class="form-group">
                                         <label for="button_TYPE_A_font_color">字体颜色</label>
                                         <div class="color-input-group">
-                                            <input type="color" id="button_TYPE_A_font_color" name="button_TYPE_A_font_color" value="#000000">
-                                            <input type="text" id="button_TYPE_A_font_color_text" placeholder="#000000" maxlength="7">
+                                            <input type="color" id="button_TYPE_A_font_color" name="button_TYPE_A_font_color" value="#FFFFFF">
+                                            <input type="text" id="button_TYPE_A_font_color_text" placeholder="#FFFFFF" maxlength="7">
                                         </div>
                                     </div>
                                     
                                     <div class="form-group">
+                                        <label for="button_TYPE_A_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_A_font_opacity" name="button_TYPE_A_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_A_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
                                         <label for="button_TYPE_A_font_size">字体大小</label>
-                                        <input type="number" id="button_TYPE_A_font_size" name="button_TYPE_A_font_size" value="18" min="12" max="36" required>
+                                        <input type="number" id="button_TYPE_A_font_size" name="button_TYPE_A_font_size" value="24" min="12" max="36" required>
                                     </div>
                                     
                                     <div class="form-group">

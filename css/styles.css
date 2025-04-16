@@ -714,7 +714,7 @@ header {
 }
 
 .summary-section {
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   border: 1px solid #e0e0e0;
   border-radius: 5px;
   overflow: hidden;
@@ -734,21 +734,22 @@ header {
 .summary-item {
   display: flex;
   margin-bottom: 10px;
-  border-bottom: 1px dashed #eee;
   padding-bottom: 10px;
+  border-bottom: 1px dashed #eee;
 }
 
 .summary-label {
-  width: 30%;
+  width: 40%;
   font-weight: 500;
   color: #555;
 }
 
 .summary-value {
-  width: 70%;
+  width: 60%;
   color: #333;
 }
 
+/* 颜色预览 */
 .color-preview {
   display: inline-block;
   width: 16px;
@@ -759,83 +760,95 @@ header {
   margin-right: 5px;
 }
 
+/* 图片预览 */
 .preview-image {
   max-width: 100px;
   max-height: 100px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 3px;
   margin-top: 5px;
 }
 
 .small-preview {
-  max-width: 48px;
-  max-height: 48px;
+  max-width: 50px;
+  max-height: 50px;
 }
 
-/* 按钮设置摘要样式 */
-#summary-button-settings > div {
-  margin-bottom: 15px;
-  padding: 0;
-  border: 1px solid #eee;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-#summary-button-settings h4 {
-  margin: 0;
-  padding: 10px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #eee;
-}
-
-/* Tabbar图标摘要样式 */
+/* TabBar图标摘要 */
 .summary-tabbar-icons {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 10px;
 }
 
 .summary-tabbar-icon {
-  flex: 0 0 calc(50% - 20px);
-  border: 1px solid #eee;
+  flex: 0 0 calc(33.333% - 10px);
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 10px;
-  background-color: #f9f9f9;
 }
 
 .summary-tabbar-icon h5 {
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 14px;
-  border-bottom: 1px solid #eee;
+  font-weight: bold;
+  color: #444;
+}
+
+.summary-tabbar-icon .summary-item {
+  margin-bottom: 5px;
   padding-bottom: 5px;
 }
 
-/* 颜色选择器组合样式 */
-.color-input-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
+.summary-tabbar-icon .summary-label {
+  width: 30%;
 }
 
-.color-input-group input[type="color"] {
-  width: 40px;
-  height: 30px;
-  padding: 0;
-  border: 1px solid var(--border-color);
-  cursor: pointer;
+.summary-tabbar-icon .summary-value {
+  width: 70%;
 }
 
-.color-input-group input[type="text"] {
-  flex: 1;
-  height: 30px;
-  max-width: 120px;
-  padding: 4px 8px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  font-family: monospace;
+/* 按钮设置摘要 */
+#summary-button-settings .summary-section {
+  margin-bottom: 15px;
+  background-color: #fafafa;
+}
+
+#summary-button-settings .summary-header {
+  background-color: #f0f0f0;
+  font-size: 14px;
+}
+
+#summary-button-settings .summary-content {
+  padding: 10px;
+}
+
+@media (max-width: 768px) {
+  .summary-tabbar-icon {
+    flex: 0 0 calc(50% - 10px);
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-tabbar-icon {
+    flex: 0 0 100%;
+  }
+  
+  .summary-item {
+    flex-direction: column;
+  }
+  
+  .summary-label, 
+  .summary-value {
+    width: 100%;
+  }
+  
+  .summary-label {
+    margin-bottom: 5px;
+  }
 }
 
 /* 按钮类型导航 */

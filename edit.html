@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>编辑主题 - 计算器皮肤主题管理系统</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="/favicon.ico.png" type="image/png">
 </head>
 <body>
     <!-- 加载指示器 -->
@@ -227,7 +228,6 @@
                                         <input type="color" id="top_nav_text_selected_color" name="top_nav_text_selected_color" value="#FFFFFF">
                                         <input type="text" id="top_nav_text_selected_color_text" placeholder="#FFFFFF" maxlength="7">
                                     </div>
-                                    <span class="form-tip">建议与导航选中颜色一致</span>
                                 </div>
                                 
                                 <div class="form-group">
@@ -236,6 +236,7 @@
                                         <input type="color" id="top_nav_text_unselected_color" name="top_nav_text_unselected_color" value="#CCCCCC">
                                         <input type="text" id="top_nav_text_unselected_color_text" placeholder="#CCCCCC" maxlength="7">
                                     </div>
+                                    <span class="form-tip">建议与导航选中颜色一致</span>
                                 </div>
                                 
                                 <div class="step-buttons">
@@ -367,10 +368,213 @@
                                     </div>
                                     
                                     <div class="form-group">
+                                        <label for="button_TYPE_A_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_A_font_opacity" name="button_TYPE_A_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_A_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
                                         <label for="button_TYPE_A_font_size">字体大小</label>
                                         <input type="number" id="button_TYPE_A_font_size" name="button_TYPE_A_font_size" value="18" min="12" max="36" required>
                                     </div>
                                 </div>
+                                
+                                <!-- B类按钮设置 -->
+                                <div id="button-type-b-settings" class="button-type-settings" style="display: none;">
+                                    <h3>B类运算符按钮(÷, ×, -, +)</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_B_use_image" name="button_TYPE_B_use_image">
+                                        <label for="button_TYPE_B_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_B_pressed_image" name="button_TYPE_B_pressed_image" accept="image/*">
+                                        <div class="current-image-container">
+                                            <p>当前图片:</p>
+                                            <img id="current-button-b-pressed-image" class="current-image">
+                                        </div>
+                                        <img id="button-b-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_B_released_image" name="button_TYPE_B_released_image" accept="image/*">
+                                        <div class="current-image-container">
+                                            <p>当前图片:</p>
+                                            <img id="current-button-b-released-image" class="current-image">
+                                        </div>
+                                        <img id="button-b-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_B_pressed_color" name="button_TYPE_B_pressed_color" value="#4A90E2">
+                                            <input type="text" id="button_TYPE_B_pressed_color_text" placeholder="#4A90E2" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_B_released_color" name="button_TYPE_B_released_color" value="#5A9DE2">
+                                            <input type="text" id="button_TYPE_B_released_color_text" placeholder="#5A9DE2" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_B_font_color" name="button_TYPE_B_font_color" value="#FFFFFF">
+                                            <input type="text" id="button_TYPE_B_font_color_text" placeholder="#FFFFFF" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_B_font_opacity" name="button_TYPE_B_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_B_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_B_font_size" name="button_TYPE_B_font_size" value="18" min="12" max="36" required>
+                                    </div>
+                                </div>
+                                
+                                <!-- C类按钮设置 -->
+                                <div id="button-type-c-settings" class="button-type-settings" style="display: none;">
+                                    <h3>C类数字按钮(0-9, .)</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_C_use_image" name="button_TYPE_C_use_image">
+                                        <label for="button_TYPE_C_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_C_pressed_image" name="button_TYPE_C_pressed_image" accept="image/*">
+                                        <div class="current-image-container">
+                                            <p>当前图片:</p>
+                                            <img id="current-button-c-pressed-image" class="current-image">
+                                        </div>
+                                        <img id="button-c-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_C_released_image" name="button_TYPE_C_released_image" accept="image/*">
+                                        <div class="current-image-container">
+                                            <p>当前图片:</p>
+                                            <img id="current-button-c-released-image" class="current-image">
+                                        </div>
+                                        <img id="button-c-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_C_pressed_color" name="button_TYPE_C_pressed_color" value="#F0F0F0">
+                                            <input type="text" id="button_TYPE_C_pressed_color_text" placeholder="#F0F0F0" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_C_released_color" name="button_TYPE_C_released_color" value="#FFFFFF">
+                                            <input type="text" id="button_TYPE_C_released_color_text" placeholder="#FFFFFF" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_C_font_color" name="button_TYPE_C_font_color" value="#000000">
+                                            <input type="text" id="button_TYPE_C_font_color_text" placeholder="#000000" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_C_font_opacity" name="button_TYPE_C_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_C_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_C_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_C_font_size" name="button_TYPE_C_font_size" value="18" min="12" max="36" required>
+                                    </div>
+                                </div>
+                                
+                                <!-- D类按钮设置 -->
+                                <div id="button-type-d-settings" class="button-type-settings" style="display: none;">
+                                    <h3>D类等号按钮(=)</h3>
+                                    
+                                    <div class="form-group checkbox-group">
+                                        <input type="checkbox" id="button_TYPE_D_use_image" name="button_TYPE_D_use_image">
+                                        <label for="button_TYPE_D_use_image">使用按钮图片</label>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_pressed_image">按下状态图片</label>
+                                        <input type="file" id="button_TYPE_D_pressed_image" name="button_TYPE_D_pressed_image" accept="image/*">
+                                        <div class="current-image-container">
+                                            <p>当前图片:</p>
+                                            <img id="current-button-d-pressed-image" class="current-image">
+                                        </div>
+                                        <img id="button-d-pressed-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_released_image">释放状态图片</label>
+                                        <input type="file" id="button_TYPE_D_released_image" name="button_TYPE_D_released_image" accept="image/*">
+                                        <div class="current-image-container">
+                                            <p>当前图片:</p>
+                                            <img id="current-button-d-released-image" class="current-image">
+                                        </div>
+                                        <img id="button-d-released-preview" class="image-preview">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_pressed_color">按下状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_D_pressed_color" name="button_TYPE_D_pressed_color" value="#FF7E47">
+                                            <input type="text" id="button_TYPE_D_pressed_color_text" placeholder="#FF7E47" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_released_color">释放状态颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_D_released_color" name="button_TYPE_D_released_color" value="#FF9E67">
+                                            <input type="text" id="button_TYPE_D_released_color_text" placeholder="#FF9E67" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_font_color">字体颜色</label>
+                                        <div class="color-input-group">
+                                            <input type="color" id="button_TYPE_D_font_color" name="button_TYPE_D_font_color" value="#FFFFFF">
+                                            <input type="text" id="button_TYPE_D_font_color_text" placeholder="#FFFFFF" maxlength="7">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_D_font_opacity" name="button_TYPE_D_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_D_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_font_size">字体大小</label>
+                                        <input type="number" id="button_TYPE_D_font_size" name="button_TYPE_D_font_size" value="18" min="12" max="36" required>
+                                    </div>
+                                </div>
+                                
+                                <!-- E类按钮设置以及其他按钮类型可以按照同样的模式添加 -->
                                 
                                 <div class="step-buttons">
                                     <button type="button" class="btn prev-step" data-prev="result-area-step">上一步</button>
@@ -730,6 +934,17 @@
                     document.getElementById(`button_TYPE_${type}_released_color`).value = theme[`button_TYPE_${type}_released_color`] || '#E0E0E0';
                     document.getElementById(`button_TYPE_${type}_font_color`).value = theme[`button_TYPE_${type}_font_color`] || '#000000';
                     document.getElementById(`button_TYPE_${type}_font_size`).value = theme[`button_TYPE_${type}_font_size`] || '18';
+                    
+                    // 设置字体透明度
+                    const fontOpacityInput = document.getElementById(`button_TYPE_${type}_font_opacity`);
+                    if (fontOpacityInput) {
+                        const fontOpacity = theme[`button_TYPE_${type}_font_opacity`] || '1';
+                        fontOpacityInput.value = fontOpacity;
+                        const fontOpacityValueElement = document.getElementById(`button_TYPE_${type}_font_opacity_value`);
+                        if (fontOpacityValueElement) {
+                            fontOpacityValueElement.textContent = fontOpacity;
+                        }
+                    }
                 }
                 
                 // 显示当前按钮图片
@@ -936,6 +1151,9 @@
             // 绑定颜色吸盘和输入框同步事件
             setupColorInputSync();
             
+            // 设置所有按钮类型的字体透明度滑块事件
+            setupButtonOpacitySliders();
+            
             loadThemeData();
         });
 
@@ -964,6 +1182,28 @@
                             colorInput.value = this.value;
                         }
                     });
+                }
+            });
+        }
+
+        // 设置所有按钮类型的字体透明度滑块事件
+        function setupButtonOpacitySliders() {
+            const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+            
+            buttonTypes.forEach(type => {
+                const opacitySlider = document.getElementById(`button_TYPE_${type}_font_opacity`);
+                if (opacitySlider) {
+                    const opacityValue = document.getElementById(`button_TYPE_${type}_font_opacity_value`);
+                    
+                    if (opacityValue) {
+                        // 初始化显示值
+                        opacityValue.textContent = opacitySlider.value;
+                        
+                        // 添加事件监听器
+                        opacitySlider.addEventListener('input', function() {
+                            opacityValue.textContent = this.value;
+                        });
+                    }
                 }
             });
         }

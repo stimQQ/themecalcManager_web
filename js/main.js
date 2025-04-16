@@ -2,13 +2,49 @@
  * 计算器皮肤主题管理系统 - 核心功能
  */
 
+// 获取API基础URL，确保在本地和远程环境中都能正常工作
+function getApiBaseUrl() {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    return isLocalhost ? '/api' : 'https://www.themecalc.com/api';
+}
+
+// URL参数获取函数
+function getUrlParam(name) {
+    const url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+// 延迟加载非关键资源
+function loadNonCriticalResources() {
+  // 创建样式表链接
+  const extraStyles = document.createElement('link');
+  extraStyles.rel = 'stylesheet';
+  extraStyles.href = 'css/extra-styles.css';
+  document.head.appendChild(extraStyles);
+  
+  // 加载其他脚本
+  const themeFixesScript = document.createElement('script');
+  themeFixesScript.src = 'js/theme-fixes.js';
+  document.body.appendChild(themeFixesScript);
+}
+
 // 等待DOM加载完成
 document.addEventListener('DOMContentLoaded', () => {
-  // 检查用户是否已登录
-  checkAuthentication();
-  
-  // 初始化页面
-  initPage();
+  // 首先处理认证
+  checkAuthentication().then(authenticated => {
+    if (authenticated) {
+      // 初始化页面并立即加载数据
+      initPage();
+      
+      // 延迟加载非关键资源
+      setTimeout(loadNonCriticalResources, 1000);
+    }
+  });
 });
 
 /**
@@ -21,11 +57,11 @@ function checkAuthentication() {
     // 如果没有登录令牌，重定向到登录页面
     localStorage.removeItem('auth_token');
     window.location.href = 'login.html';
-    return;
+    return false;
   }
   
   // 验证token有效性
-  verifyToken();
+  return verifyToken();
 }
 
 /**
@@ -40,7 +76,7 @@ async function verifyToken() {
     if (!token) {
       console.warn('未找到认证令牌，需要登录');
       window.location.href = 'login.html';
-      return;
+      return false;
     }
     
     console.log('验证token...');
@@ -62,8 +98,20 @@ async function verifyToken() {
  * 初始化页面
  */
 function initPage() {
+  // 检查是否从删除主题页面重定向过来
+  const isDeleted = getUrlParam('deleted') === 'true';
+  if (isDeleted) {
+    showSuccessMessage('主题已成功删除');
+    
+    // 移除URL参数，避免刷新后再次显示消息
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+  
   // 加载主题列表
   loadThemes();
+  
+  // 设置字体透明度滑块
+  setupFontOpacitySliders();
   
   // 初始化搜索功能
   initSearch();
@@ -79,6 +127,28 @@ function initPage() {
 }
 
 /**
+ * 设置字体透明度滑块的值显示
+ */
+function setupFontOpacitySliders() {
+  const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+  
+  buttonTypes.forEach(type => {
+    const slider = document.getElementById(`button_TYPE_${type}_font_opacity`);
+    const valueDisplay = document.getElementById(`button_TYPE_${type}_font_opacity_value`);
+    
+    if (slider && valueDisplay) {
+      // 设置初始值
+      valueDisplay.textContent = slider.value;
+      
+      // 添加事件监听器，当滑块值变化时更新显示
+      slider.addEventListener('input', function() {
+        valueDisplay.textContent = this.value;
+      });
+    }
+  });
+}
+
+/**
  * 退出登录
  */
 function logout() {
@@ -90,69 +160,82 @@ function logout() {
  * 加载主题列表
  */
 async function loadThemes(page = 1, per_page = 10, search = '', isPaid = null) {
-  try {
-    // 显示加载指示器
-    document.getElementById('loading-indicator').style.display = 'block';
-    
-    // 获取主题列表
-    const params = { page, per_page };
-    if (search) params.search = search;
-    if (isPaid !== null) params.is_paid = isPaid;
-    
-    // 强制刷新，避免缓存问题
-    params.timestamp = new Date().getTime();
-    
-    const response = await themeAPI.getThemes(params);
-    console.log('主题列表响应:', response);
-    
-    // 提取主题数据
-    let themes;
-    
-    // 处理不同结构的响应
-    if (Array.isArray(response)) {
-      // 如果响应是数组，直接使用
-      themes = response;
-    } else if (response.items && Array.isArray(response.items)) {
-      // 如果响应包含items数组，使用该数组
-      themes = response.items;
-    } else if (typeof response === 'object') {
-      // 如果响应是对象，尝试找到第一个数组类型的属性
-      for (const key in response) {
-        if (Array.isArray(response[key])) {
-          themes = response[key];
-          break;
+  let retryCount = 0;
+  const maxRetries = 2;
+  
+  async function attemptLoad() {
+    try {
+      // 显示加载指示器
+      document.getElementById('loading-indicator').style.display = 'block';
+      
+      // 获取主题列表
+      const params = { page, per_page };
+      if (search) params.search = search;
+      if (isPaid !== null) params.is_paid = isPaid;
+      
+      // 强制刷新，避免缓存问题
+      params.timestamp = new Date().getTime();
+      
+      console.log(`正在加载主题列表，页码: ${page}, 每页数量: ${per_page}`);
+      const response = await themeAPI.getThemes(params);
+      
+      // 提取主题数据
+      let themes;
+      
+      // 处理不同结构的响应
+      if (Array.isArray(response)) {
+        // 如果响应是数组，直接使用
+        themes = response;
+      } else if (response.items && Array.isArray(response.items)) {
+        // 如果响应包含items数组，使用该数组
+        themes = response.items;
+      } else if (typeof response === 'object') {
+        // 如果响应是对象，尝试找到第一个数组类型的属性
+        for (const key in response) {
+          if (Array.isArray(response[key])) {
+            themes = response[key];
+            break;
+          }
         }
       }
+      
+      // 如果没有找到有效的主题数组，设为空数组
+      if (!themes) {
+        themes = [];
+        console.warn('未能在响应中找到主题数组');
+      }
+      
+      console.log(`获取到 ${themes.length} 个主题`);
+      
+      // 更新分页信息
+      if (response.total !== undefined && response.pages !== undefined) {
+        updatePagination(response.total, response.pages, response.current_page);
+      }
+      
+      // 渲染主题列表
+      renderThemeList(themes);
+      return true;
+    } catch (error) {
+      console.error('加载主题列表失败:', error);
+      
+      if (retryCount < maxRetries) {
+        retryCount++;
+        console.log(`重试加载主题列表(${retryCount}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 延迟1秒后重试
+        return attemptLoad();
+      } else {
+        showErrorMessage(`加载主题列表失败: ${error.message}`);
+        // 出错时显示空的主题列表
+        renderThemeList([]);
+        return false;
+      }
+    } finally {
+      // 隐藏加载指示器
+      document.getElementById('loading-indicator').style.display = 'none';
     }
-    
-    // 如果没有找到有效的主题数组，设为空数组
-    if (!themes) {
-      themes = [];
-      console.warn('未能在响应中找到主题数组');
-    } else {
-      // 打印每个主题的usage_count以便调试
-      themes.forEach(theme => {
-        console.log(`主题ID: ${theme.id}, 名称: ${theme.name}, 使用次数: ${theme.usage_count}`);
-      });
-    }
-    
-    // 更新分页信息
-    if (response.total !== undefined && response.pages !== undefined) {
-      updatePagination(response.total, response.pages, response.current_page);
-    }
-    
-    // 渲染主题列表
-    renderThemeList(themes);
-  } catch (error) {
-    console.error('加载主题列表失败:', error);
-    showErrorMessage(`加载主题列表失败: ${error.message}`);
-    
-    // 出错时显示空的主题列表
-    renderThemeList([]);
-  } finally {
-    // 隐藏加载指示器
-    document.getElementById('loading-indicator').style.display = 'none';
   }
+  
+  return attemptLoad();
 }
 
 /**

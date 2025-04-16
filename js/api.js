@@ -2,9 +2,8 @@
  * 计算器皮肤主题管理系统 - API接口封装
  */
 const themeAPI = (function() {
-  // 使用本地代理而非直接访问远程API
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const BASE_URL = isLocalhost ? '/api' : 'https://www.themecalc.com/api';
+  // 直接连接到远程API，不再使用本地代理
+  const BASE_URL = 'https://www.themecalc.com/api';
   
   console.log('API模块使用的基础URL:', BASE_URL);
   
@@ -79,6 +78,10 @@ const themeAPI = (function() {
     console.log('请求URL:', url); // 调试日志
     
     try {
+      // 使用AbortController实现请求超时
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+      
       const response = await fetch(url, {
         method: 'GET',
         headers: getHeaders(),
@@ -86,11 +89,21 @@ const themeAPI = (function() {
         cache: 'no-store',
         // 添加CORS设置
         credentials: 'omit',
-        mode: 'cors'
+        mode: 'cors',
+        // 添加信号控制器
+        signal: controller.signal
       });
+      
+      // 清除超时定时器
+      clearTimeout(timeoutId);
       
       return await handleResponse(response);
     } catch (error) {
+      // 特殊处理AbortError（超时）
+      if (error.name === 'AbortError') {
+        throw new Error('请求超时，请检查网络连接');
+      }
+      
       console.error('获取主题列表失败:', error);
       throw error;
     }
@@ -103,16 +116,30 @@ const themeAPI = (function() {
    */
   const getThemeDetail = async (id) => {
     try {
+      // 使用AbortController实现请求超时
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+      
       const response = await fetch(`${BASE_URL}/skin/${id}`, {
         method: 'GET',
         headers: getHeaders(),
         // 添加CORS设置
         credentials: 'omit',
-        mode: 'cors'
+        mode: 'cors',
+        // 添加信号控制器
+        signal: controller.signal
       });
+      
+      // 清除超时定时器
+      clearTimeout(timeoutId);
       
       return await handleResponse(response);
     } catch (error) {
+      // 特殊处理AbortError（超时）
+      if (error.name === 'AbortError') {
+        throw new Error('请求超时，请检查网络连接');
+      }
+      
       console.error(`获取主题 ${id} 详情失败:`, error);
       throw error;
     }

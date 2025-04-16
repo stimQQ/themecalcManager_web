@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>计算器皮肤主题管理系统</title>
+    <!-- DNS预解析 -->
+    <link rel="dns-prefetch" href="https://www.themecalc.com">
+    <link rel="preconnect" href="https://www.themecalc.com" crossorigin>
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="css/styles.css" as="style">
+    <link rel="preload" href="js/api.js" as="script">
+    <link rel="preload" href="js/main.js" as="script">
+    <!-- 样式表 -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="/favicon.ico.png" type="image/png">
 </head>
 <body>
     <!-- 加载指示器 -->
@@ -336,6 +345,12 @@
                                     </div>
                                     
                                     <div class="form-group">
+                                        <label for="button_TYPE_A_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_A_font_opacity" name="button_TYPE_A_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_A_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
                                         <label for="button_TYPE_A_font_size">字体大小</label>
                                         <input type="number" id="button_TYPE_A_font_size" name="button_TYPE_A_font_size" value="18" min="12" max="36" required>
                                     </div>
@@ -393,6 +408,12 @@
                                             <input type="color" id="button_TYPE_B_font_color" name="button_TYPE_B_font_color" value="#FFFFFF">
                                             <input type="text" id="button_TYPE_B_font_color_text" placeholder="#FFFFFF" maxlength="7">
                                         </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_B_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_B_font_opacity" name="button_TYPE_B_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_B_font_opacity_value">1</span>
                                     </div>
                                     
                                     <div class="form-group">
@@ -456,6 +477,12 @@
                                     </div>
                                     
                                     <div class="form-group">
+                                        <label for="button_TYPE_C_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_C_font_opacity" name="button_TYPE_C_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_C_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
                                         <label for="button_TYPE_C_font_size">字体大小</label>
                                         <input type="number" id="button_TYPE_C_font_size" name="button_TYPE_C_font_size" value="18" min="12" max="36" required>
                                     </div>
@@ -513,6 +540,12 @@
                                             <input type="color" id="button_TYPE_D_font_color" name="button_TYPE_D_font_color" value="#FFFFFF">
                                             <input type="text" id="button_TYPE_D_font_color_text" placeholder="#FFFFFF" maxlength="7">
                                         </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_D_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_D_font_opacity" name="button_TYPE_D_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_D_font_opacity_value">1</span>
                                     </div>
                                     
                                     <div class="form-group">
@@ -576,6 +609,12 @@
                                     </div>
                                     
                                     <div class="form-group">
+                                        <label for="button_TYPE_E_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_E_font_opacity" name="button_TYPE_E_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_E_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
                                         <label for="button_TYPE_E_font_size">字体大小</label>
                                         <input type="number" id="button_TYPE_E_font_size" name="button_TYPE_E_font_size" value="16" min="12" max="36" required>
                                     </div>
@@ -633,6 +672,12 @@
                                             <input type="color" id="button_TYPE_F_font_color" name="button_TYPE_F_font_color" value="#000000">
                                             <input type="text" id="button_TYPE_F_font_color_text" placeholder="#000000" maxlength="7">
                                         </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_F_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_F_font_opacity" name="button_TYPE_F_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_F_font_opacity_value">1</span>
                                     </div>
                                     
                                     <div class="form-group">
@@ -696,6 +741,12 @@
                                     </div>
                                     
                                     <div class="form-group">
+                                        <label for="button_TYPE_G_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_G_font_opacity" name="button_TYPE_G_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_G_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
                                         <label for="button_TYPE_G_font_size">字体大小</label>
                                         <input type="number" id="button_TYPE_G_font_size" name="button_TYPE_G_font_size" value="18" min="12" max="36" required>
                                     </div>
@@ -756,6 +807,12 @@
                                     </div>
                                     
                                     <div class="form-group">
+                                        <label for="button_TYPE_H_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_H_font_opacity" name="button_TYPE_H_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_H_font_opacity_value">1</span>
+                                    </div>
+                                    
+                                    <div class="form-group">
                                         <label for="button_TYPE_H_font_size">字体大小</label>
                                         <input type="number" id="button_TYPE_H_font_size" name="button_TYPE_H_font_size" value="18" min="12" max="36" required>
                                     </div>
@@ -813,6 +870,12 @@
                                             <input type="color" id="button_TYPE_I_font_color" name="button_TYPE_I_font_color" value="#FFFFFF">
                                             <input type="text" id="button_TYPE_I_font_color_text" placeholder="#FFFFFF" maxlength="7">
                                         </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="button_TYPE_I_font_opacity">字体透明度</label>
+                                        <input type="range" id="button_TYPE_I_font_opacity" name="button_TYPE_I_font_opacity" min="0" max="1" step="0.1" value="1">
+                                        <span id="button_TYPE_I_font_opacity_value">1</span>
                                     </div>
                                     
                                     <div class="form-group">
@@ -1169,80 +1232,7 @@
     </template>
     
     <!-- 脚本 -->
-    <script src="js/api.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/theme-fixes.js"></script>
-    
-    <script>
-        // 页面加载完成后加载主题列表
-        document.addEventListener('DOMContentLoaded', function() {
-            // 检查是否从删除主题页面重定向过来
-            const isDeleted = getUrlParam('deleted') === 'true';
-            if (isDeleted) {
-                showSuccessMessage('主题已成功删除');
-                
-                // 移除URL参数，避免刷新后再次显示消息
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-            
-            // 加载主题列表
-            loadThemes();
-        });
-        
-        // 检查认证状态
-        (function checkAuth() {
-            const token = localStorage.getItem('auth_token');
-            
-            if (!token) {
-                console.warn('未找到认证令牌，重定向到登录页面');
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            // 使用本地代理而非直接访问远程API
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const apiBaseUrl = isLocalhost ? '/api' : 'https://www.themecalc.com/api';
-            
-            console.log('使用API基础URL:', apiBaseUrl);
-            
-            // 验证token有效性
-            console.log('检查token有效性...');
-            fetch(`${apiBaseUrl}/skin?page=1&per_page=1`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                    'Origin': window.location.origin  // 动态获取当前域名
-                },
-                credentials: 'omit',
-                mode: 'cors'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    console.error('Token无效，清除并重定向到登录页面');
-                    localStorage.removeItem('auth_token');
-                    window.location.href = 'login.html';
-                    return;
-                }
-                console.log('Token有效，用户已认证');
-            })
-            .catch(error => {
-                console.error('验证token时出错:', error);
-                localStorage.removeItem('auth_token');
-                window.location.href = 'login.html';
-            });
-        })();
-        
-        // 退出登录
-        document.getElementById('logout-button').addEventListener('click', function() {
-            if (confirm('确定要退出登录吗？')) {
-                // 清除认证令牌
-                localStorage.removeItem('auth_token');
-                
-                // 重定向到登录页面
-                window.location.href = 'login.html';
-            }
-        });
-    </script>
+    <script src="js/api.js" defer></script>
+    <script src="js/main.js" defer></script>
 </body>
 </html> 

@@ -5,7 +5,6 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const https = require('https');
 const http = require('http');
 const app = express();
 const PORT = 5005;
@@ -18,53 +17,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
-});
-
-// API代理中间件 - 转发/api请求到远程服务器
-app.use('/api', (req, res) => {
-  const targetUrl = `https://www.themecalc.com/api${req.url}`;
-  console.log(`[代理] ${req.method} ${req.url} -> ${targetUrl}`);
-
-  // 准备代理选项
-  const options = {
-    method: req.method,
-    headers: {
-      ...req.headers,
-      host: 'www.themecalc.com',
-      origin: 'https://www.themecalc.com'
-    }
-  };
-
-  // 创建请求
-  const proxyReq = https.request(targetUrl, options, (proxyRes) => {
-    // 设置响应头
-    res.status(proxyRes.statusCode);
-    Object.keys(proxyRes.headers).forEach(key => {
-      res.setHeader(key, proxyRes.headers[key]);
-    });
-
-    // 管道响应体
-    proxyRes.pipe(res);
-  });
-
-  // 错误处理
-  proxyReq.on('error', (err) => {
-    console.error('[代理错误]', err);
-    res.status(500).json({ 
-      error: '代理错误', 
-      message: err.message,
-      url: targetUrl
-    });
-  });
-
-  // 如果有请求体，转发它
-  if (req.body && Object.keys(req.body).length > 0) {
-    const bodyData = JSON.stringify(req.body);
-    proxyReq.write(bodyData);
-  }
-
-  // 发送请求
-  proxyReq.end();
 });
 
 // 强化CORS配置，允许跨域请求
@@ -115,7 +67,7 @@ app.get('*', (req, res) => {
 const startServer = (port) => {
   const server = app.listen(port, '0.0.0.0', () => {
     console.log(`主题管理系统已启动在 http://localhost:${port}`);
-    console.log(`API请求将通过本地代理转发到 https://www.themecalc.com/api`);
+    console.log(`API请求将直接发送到 https://www.themecalc.com/api`);
   }).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
       console.log(`端口 ${port} 已被占用, 尝试使用端口 ${port + 1}...`);
