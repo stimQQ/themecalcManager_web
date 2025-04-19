@@ -728,9 +728,7 @@
         }
         
         // 加载主题数据
-        async function loadThemeData() {
-            const themeId = getUrlParam('id');
-            
+        async function loadThemeData(themeId) {
             if (!themeId) {
                 showErrorMessage('未指定主题ID');
                 return;
@@ -854,75 +852,72 @@
                 document.getElementById('result_font_size').value = theme.result_font_size || '24';
             }
             
-            // 按钮皮肤设置
-            const buttonTypes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-            buttonTypes.forEach(type => {
-                const useImageCheckbox = document.getElementById(`button_TYPE_${type}_use_image`);
-                if (!useImageCheckbox) return;
+            // 处理按钮皮肤设置
+            if (theme.buttons && Array.isArray(theme.buttons)) {
+                console.log('处理按钮皮肤设置，共', theme.buttons.length, '个按钮');
                 
-                const useImage = theme[`button_TYPE_${type}_use_image`] === 'true' || theme[`button_TYPE_${type}_use_image`] === true;
-                useImageCheckbox.checked = useImage;
-                
-                // 更新按钮图片/颜色控件可见性
-                if (typeof updateButtonTypeVisibility === 'function') {
-                    updateButtonTypeVisibility(type, useImage);
-                } else {
-                    // 备用方式设置可见性
-                    const imageFields = document.querySelectorAll(`[id^="button_TYPE_${type}_"][id$="_image"]`);
-                    imageFields.forEach(el => {
-                        if (el.id !== `button_TYPE_${type}_use_image`) {
-                            const parent = el.closest('.form-group');
-                            if (parent) parent.style.display = useImage ? 'block' : 'none';
+                // 遍历按钮数据并设置表单
+                theme.buttons.forEach(button => {
+                    try {
+                        const type = button.type; // 例如 "TYPE_A", "TYPE_B" 等
+                        if (!type) return;
+                        
+                        console.log(`设置${type}按钮的属性`);
+                        
+                        // 设置使用图片选项
+                        const useImageCheckbox = document.getElementById(`button_${type}_use_image`);
+                        if (useImageCheckbox) {
+                            const useImage = button.use_image === true || button.use_image === 'true';
+                            useImageCheckbox.checked = useImage;
+                            
+                            // 更新按钮图片/颜色控件可见性
+                            updateButtonTypeVisibility(type.replace('TYPE_', ''), useImage);
+                            
+                            // 设置按钮的图片和颜色属性
+                            if (button.pressed_image) {
+                                const currentPressedImage = document.getElementById(`current-button-${type.replace('TYPE_', '').toLowerCase()}-pressed-image`);
+                                if (currentPressedImage) {
+                                    currentPressedImage.src = button.pressed_image;
+                                    currentPressedImage.parentElement.style.display = useImage ? 'block' : 'none';
+                                }
+                            }
+                            
+                            if (button.released_image) {
+                                const currentReleasedImage = document.getElementById(`current-button-${type.replace('TYPE_', '').toLowerCase()}-released-image`);
+                                if (currentReleasedImage) {
+                                    currentReleasedImage.src = button.released_image;
+                                    currentReleasedImage.parentElement.style.display = useImage ? 'block' : 'none';
+                                }
+                            }
+                            
+                            // 设置按钮的颜色属性
+                            if (document.getElementById(`button_${type}_pressed_color`)) {
+                                document.getElementById(`button_${type}_pressed_color`).value = button.pressed_color || '#D0D0D0';
+                                document.getElementById(`button_${type}_released_color`).value = button.released_color || '#E0E0E0';
+                                document.getElementById(`button_${type}_font_color`).value = button.font_color || '#000000';
+                                
+                                // 设置字体透明度
+                                const fontOpacityInput = document.getElementById(`button_${type}_font_opacity`);
+                                if (fontOpacityInput && button.font_opacity !== undefined) {
+                                    fontOpacityInput.value = button.font_opacity;
+                                    const fontOpacityValueElement = document.getElementById(`button_${type}_font_opacity_value`);
+                                    if (fontOpacityValueElement) {
+                                        fontOpacityValueElement.textContent = button.font_opacity;
+                                    }
+                                }
+                                
+                                // 设置字体大小
+                                const fontSizeInput = document.getElementById(`button_${type}_font_size`);
+                                if (fontSizeInput && button.font_size !== undefined) {
+                                    fontSizeInput.value = button.font_size;
+                                }
+                            }
                         }
-                    });
-                    
-                    const colorFields = document.querySelectorAll(`[id^="button_TYPE_${type}_"][id$="_color"]`);
-                    colorFields.forEach(el => {
-                        const parent = el.closest('.form-group');
-                        if (parent && !parent.classList.contains('checkbox-group')) {
-                            parent.style.display = useImage ? 'none' : 'block';
-                        }
-                    });
-                }
-                
-                // 设置按钮颜色和字体
-                if (document.getElementById(`button_TYPE_${type}_pressed_color`)) {
-                    document.getElementById(`button_TYPE_${type}_pressed_color`).value = theme[`button_TYPE_${type}_pressed_color`] || '#D0D0D0';
-                    document.getElementById(`button_TYPE_${type}_released_color`).value = theme[`button_TYPE_${type}_released_color`] || '#E0E0E0';
-                    document.getElementById(`button_TYPE_${type}_font_color`).value = theme[`button_TYPE_${type}_font_color`] || '#000000';
-                    document.getElementById(`button_TYPE_${type}_font_size`).value = theme[`button_TYPE_${type}_font_size`] || '18';
-                    
-                    // 设置字体透明度
-                    const fontOpacityInput = document.getElementById(`button_TYPE_${type}_font_opacity`);
-                    if (fontOpacityInput) {
-                        const fontOpacity = theme[`button_TYPE_${type}_font_opacity`] || '1';
-                        fontOpacityInput.value = fontOpacity;
-                        const fontOpacityValueElement = document.getElementById(`button_TYPE_${type}_font_opacity_value`);
-                        if (fontOpacityValueElement) {
-                            fontOpacityValueElement.textContent = fontOpacity;
-                        }
+                    } catch (err) {
+                        console.error(`设置按钮${button.type}属性时出错:`, err);
                     }
-                }
-                
-                // 显示当前按钮图片
-                if (useImage) {
-                    if (theme[`button_TYPE_${type}_pressed_image`]) {
-                        const currentPressedImage = document.getElementById(`current-button-${type.toLowerCase()}-pressed-image`);
-                        if (currentPressedImage) {
-                            currentPressedImage.src = theme[`button_TYPE_${type}_pressed_image`];
-                            currentPressedImage.parentElement.style.display = 'block';
-                        }
-                    }
-                    
-                    if (theme[`button_TYPE_${type}_released_image`]) {
-                        const currentReleasedImage = document.getElementById(`current-button-${type.toLowerCase()}-released-image`);
-                        if (currentReleasedImage) {
-                            currentReleasedImage.src = theme[`button_TYPE_${type}_released_image`];
-                            currentReleasedImage.parentElement.style.display = 'block';
-                        }
-                    }
-                }
-            });
+                });
+            }
             
             // TabBar设置
             if (document.getElementById('tabbar_background_color')) {
@@ -1105,14 +1100,71 @@
         
         // 页面加载完成后加载主题数据
         document.addEventListener('DOMContentLoaded', function() {
-            // 绑定颜色吸盘和输入框同步事件
-            setupColorInputSync();
+            // 初始化步骤显示
+            initSteps();
             
-            // 设置所有按钮类型的字体透明度滑块事件
-            setupButtonOpacitySliders();
+            // 绑定其他事件
+            bindEvents();
             
-            loadThemeData();
+            // 确保步骤按钮正确初始化
+            fixStepButtons();
+            
+            // 获取URL中的主题ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const themeId = urlParams.get('id');
+            
+            if (themeId) {
+                console.log('加载主题ID:', themeId);
+                document.getElementById('theme-id').value = themeId;
+                loadThemeData(themeId);
+            }
         });
+        
+        // 绑定各种UI事件
+        function bindEvents() {
+            // 设置A类按钮图片/颜色切换
+            document.getElementById('button_TYPE_A_use_image').addEventListener('change', function() {
+                updateButtonTypeVisibility('A', this.checked);
+            });
+            
+            // 结果区背景图片预览
+            document.getElementById('result_background_image').addEventListener('change', function(e) {
+                const preview = document.getElementById('result-background-preview');
+                previewImage(this, preview);
+            });
+            
+            // TabBar背景图片预览
+            document.getElementById('tabbar_background_image').addEventListener('change', function(e) {
+                const preview = document.getElementById('tabbar-background-preview');
+                previewImage(this, preview);
+            });
+            
+            // 按钮图片预览
+            document.getElementById('button_TYPE_A_pressed_image').addEventListener('change', function(e) {
+                const preview = document.getElementById('button-a-pressed-preview');
+                previewImage(this, preview);
+            });
+            
+            document.getElementById('button_TYPE_A_released_image').addEventListener('change', function(e) {
+                const preview = document.getElementById('button-a-released-preview');
+                previewImage(this, preview);
+            });
+            
+            // 背景透明度拖动条数值联动
+            document.getElementById('tabbar_opacity').addEventListener('input', function() {
+                document.getElementById('tabbar_opacity_value').textContent = this.value;
+            });
+            
+            // 确保提交按钮绑定了事件
+            const editSubmitButton = document.getElementById('edit-submit-button');
+            if (editSubmitButton) {
+                editSubmitButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('确认提交按钮被点击');
+                    updateTheme();
+                });
+            }
+        }
 
         // 设置颜色吸盘和输入框同步
         function setupColorInputSync() {
@@ -1216,8 +1268,10 @@
             });
         });
 
-        // 按钮图片/颜色切换函数
+        // 更新按钮类型的图片/颜色控件可见性
         function updateButtonTypeVisibility(type, useImage) {
+            console.log(`更新按钮类型${type}的可见性, useImage=${useImage}`);
+            
             // 查找所有图片相关控件
             const imageFields = document.querySelectorAll(`[id^="button_TYPE_${type}_"][id$="_image"]`);
             imageFields.forEach(el => {
@@ -1226,7 +1280,7 @@
                     if (parent) parent.style.display = useImage ? 'block' : 'none';
                 }
             });
-
+            
             // 查找所有颜色相关控件
             const colorFields = document.querySelectorAll(`[id^="button_TYPE_${type}_"][id$="_color"]`);
             colorFields.forEach(el => {
@@ -1237,46 +1291,75 @@
             });
         }
 
-        // 设置A类按钮图片/颜色切换
-        document.getElementById('button_TYPE_A_use_image').addEventListener('change', function() {
-            updateButtonTypeVisibility('A', this.checked);
-        });
-
-        // 结果区背景图片预览
-        document.getElementById('result_background_image').addEventListener('change', function(e) {
-            const preview = document.getElementById('result-background-preview');
-            previewImage(this, preview);
-        });
-
-        // TabBar背景图片预览
-        document.getElementById('tabbar_background_image').addEventListener('change', function(e) {
-            const preview = document.getElementById('tabbar-background-preview');
-            previewImage(this, preview);
-        });
-
-        // 按钮图片预览
-        document.getElementById('button_TYPE_A_pressed_image').addEventListener('change', function(e) {
-            const preview = document.getElementById('button-a-pressed-preview');
-            previewImage(this, preview);
-        });
-
-        document.getElementById('button_TYPE_A_released_image').addEventListener('change', function(e) {
-            const preview = document.getElementById('button-a-released-preview');
-            previewImage(this, preview);
-        });
-
-        // 背景透明度拖动条数值联动
-        document.getElementById('tabbar_opacity').addEventListener('input', function() {
-            document.getElementById('tabbar_opacity_value').textContent = this.value;
-        });
-
-        // 确保提交按钮绑定了事件
-        const editSubmitButton = document.getElementById('edit-submit-button');
-        if (editSubmitButton) {
-            editSubmitButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('确认提交按钮被点击');
-                updateTheme();
+        // 确保步骤按钮正确初始化
+        function fixStepButtons() {
+            console.log('修复步骤按钮事件绑定');
+            const continueButtons = document.querySelectorAll('.continue-button');
+            
+            continueButtons.forEach(button => {
+                // 移除已有的事件监听器（避免重复绑定）
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                // 重新绑定事件
+                newButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetStep = this.getAttribute('data-target');
+                    if (targetStep) {
+                        // 保存当前数据
+                        updateTheme(false).then(() => {
+                            // 成功保存后切换到下一步
+                            showStep(targetStep);
+                        }).catch(error => {
+                            console.error('保存失败:', error);
+                            showErrorMessage('保存失败，请检查表单数据');
+                        });
+                    }
+                });
+            });
+        }
+        
+        // 初始化步骤显示
+        function initSteps() {
+            // 默认显示第一步
+            showStep('step1');
+            
+            // 绑定步骤导航事件
+            const stepNavs = document.querySelectorAll('.step-nav');
+            stepNavs.forEach(nav => {
+                nav.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetStep = this.getAttribute('data-target');
+                    if (targetStep) {
+                        showStep(targetStep);
+                    }
+                });
+            });
+        }
+        
+        // 显示指定步骤
+        function showStep(stepId) {
+            console.log('切换到步骤:', stepId);
+            // 隐藏所有步骤
+            const allSteps = document.querySelectorAll('.edit-step');
+            allSteps.forEach(step => {
+                step.style.display = 'none';
+            });
+            
+            // 显示目标步骤
+            const targetStep = document.getElementById(stepId);
+            if (targetStep) {
+                targetStep.style.display = 'block';
+            }
+            
+            // 更新步骤指示器
+            const allNavs = document.querySelectorAll('.step-nav');
+            allNavs.forEach(nav => {
+                if (nav.getAttribute('data-target') === stepId) {
+                    nav.classList.add('active');
+                } else {
+                    nav.classList.remove('active');
+                }
             });
         }
     </script>
