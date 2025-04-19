@@ -2,8 +2,12 @@
  * 计算器皮肤主题管理系统 - API接口封装
  */
 const themeAPI = (function() {
-  // 直接连接到远程API，不再使用本地代理
-  const BASE_URL = 'https://www.themecalc.com/api';
+  // 基础URL定义
+  const WWW_BASE_URL = 'https://www.themecalc.com/api';
+  const ADMIN_BASE_URL = 'https://admin.themecalc.com/api';
+  
+  // 使用www域名，修复之前使用admin域名的问题
+  const BASE_URL = WWW_BASE_URL;
   
   console.log('API模块使用的基础URL:', BASE_URL);
   
@@ -120,7 +124,11 @@ const themeAPI = (function() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
       
-      const response = await fetch(`${BASE_URL}/skin/${id}`, {
+      console.log(`开始请求主题ID: ${id} 的详情`);
+      const url = `${BASE_URL}/skin/${id}`;
+      console.log('详情请求URL:', url);
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: getHeaders(),
         // 添加CORS设置
@@ -504,14 +512,16 @@ const themeAPI = (function() {
     }
   };
   
-  // 公开API
+  // 导出API方法
   return {
     getThemes,
     getThemeDetail,
     createTheme,
     updateTheme,
     deleteTheme,
-    applyTheme
+    applyTheme,
+    // 添加获取当前BASE_URL的方法
+    getBaseUrl: () => BASE_URL
   };
 })();
 

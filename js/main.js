@@ -510,32 +510,77 @@ function initPagination() {
  * 初始化主题创建功能
  */
 function initThemeCreation() {
-  // 获取相关元素
+  console.log('Attempting to initialize theme creation...');
+  // 获取必需的元素
   const newThemeButton = document.getElementById('new-theme-button');
-  const themeForm = document.getElementById('theme-form');
-  const formCloseButton = document.getElementById('form-close');
-  
-  if (!newThemeButton || !themeForm || !formCloseButton) return;
-  
-  // 打开表单
+  const createPage = document.getElementById('theme-create-page');
+  const listPage = document.getElementById('theme-list-page');
+
+  // 检查必需的元素是否存在
+  if (!newThemeButton) {
+    console.error('Error: Cannot find new theme button (id: new-theme-button)');
+    return;
+  }
+  if (!createPage) {
+    console.error('Error: Cannot find theme create page (id: theme-create-page)');
+    return;
+  }
+  if (!listPage) {
+    console.error('Error: Cannot find theme list page (id: theme-list-page)');
+    return;
+  }
+
+  console.log('Elements found, adding click listener to new-theme-button.');
+
+  // 打开表单 (现在这个监听器应该会被添加了)
   newThemeButton.addEventListener('click', () => {
-    // 重置表单
-    document.getElementById('theme-form').reset();
-    document.getElementById('theme-id').value = '';
-    document.getElementById('form-title').textContent = '创建新主题';
-    document.getElementById('submit-button').textContent = '创建';
-    
-    // 显示表单
-    document.getElementById('theme-form-container').style.display = 'block';
+    console.log('New theme button clicked! Navigating to create.html');
+    // 不再是显示/隐藏 div，而是直接跳转页面
+    // createPage.style.display = 'block'; 
+    // listPage.style.display = 'none';
+    window.location.href = 'create.html'; // <--- 修改为页面跳转
   });
-  
-  // 关闭表单
-  formCloseButton.addEventListener('click', () => {
-    document.getElementById('theme-form-container').style.display = 'none';
+
+  // 注意: 关闭按钮和表单提交的逻辑原本依赖 theme-form 和 form-close，
+  // 这部分逻辑可能需要根据 theme-create-page 的实际内容重新实现或移到其他地方。
+  // 例如，关闭按钮的事件监听器可能需要加在 theme-create-page 内部的某个按钮上。
+
+  // const formCloseButton = document.getElementById('form-close'); // 之前的代码
+  // const themeForm = document.getElementById('theme-form'); // 之前的代码
+  // if (formCloseButton) { ... } // 之前的关闭逻辑
+  // if (themeForm) { themeForm.addEventListener('submit', handleFormSubmit); } // 之前的提交逻辑
+
+  // 处理下一步按钮
+  const nextStepButtons = document.querySelectorAll('.next-step');
+  nextStepButtons.forEach(button => {
+    button.addEventListener('click', async (event) => {
+      const currentStep = button.closest('.step-content');
+      const nextStepId = button.getAttribute('data-next');
+
+      if (!currentStep || !nextStepId) {
+        console.error('无法确定当前步骤或下一步');
+        return;
+      }
+
+      button.disabled = true; // 点击后立即禁用
+      showLoading(true);
+
+      try {
+        const savedData = await saveCurrentStepData(currentStep.id);
+        console.log('当前步骤数据已保存:', savedData);
+        navigateToStep(nextStepId);
+        // 不在此处启用按钮
+      } catch (error) {
+        console.error(`保存步骤 ${currentStep.id} 或导航至 ${nextStepId} 时出错:`, error);
+        showErrorMessage(`保存或导航时出错: ${error.message || '未知错误'}`);
+        // 也不在此处启用按钮
+      } finally {
+        // 确保按钮在最后总是被重新启用
+        button.disabled = false;
+        showLoading(false);
+      }
+    });
   });
-  
-  // 提交表单
-  themeForm.addEventListener('submit', handleFormSubmit);
 }
 
 /**
@@ -568,8 +613,9 @@ async function handleFormSubmit(e) {
     
     console.log('主题保存响应:', response);
     
-    // 关闭表单
-    document.getElementById('theme-form-container').style.display = 'none';
+    // 关闭表单 - 改为隐藏 theme-create-page 并显示 theme-list-page
+    document.getElementById('theme-create-page').style.display = 'none';
+    document.getElementById('theme-list-page').style.display = 'block';
     
     // 重新加载主题列表
     loadThemes();
@@ -593,25 +639,13 @@ async function editTheme(themeId) {
       loadingIndicator.style.display = 'block';
     }
     
-    // 获取主题详情
-    const theme = await themeAPI.getThemeDetail(themeId);
-    console.log('主题详情:', theme);
+    console.log(`编辑主题ID: ${themeId}`);
     
-    // 填充表单
-    fillThemeForm(theme);
-    
-    // 显示表单
-    const formContainer = document.getElementById('theme-form-container');
-    if (formContainer) {
-      formContainer.style.display = 'block';
-    } else {
-      console.warn('未找到表单容器元素');
-      // 尝试定位到主题创建页面
-      showThemeCreatePage();
-    }
+    // 直接跳转到编辑页面
+    window.location.href = `edit.html?id=${themeId}`;
   } catch (error) {
-    console.error(`加载主题 ${themeId} 详情失败:`, error);
-    showErrorMessage(`加载主题详情失败: ${error.message}`);
+    console.error(`编辑主题 ${themeId} 失败:`, error);
+    showErrorMessage(`编辑主题失败: ${error.message}`);
   } finally {
     // 隐藏加载指示器
     const loadingIndicator = document.getElementById('loading-indicator');

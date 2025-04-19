@@ -719,59 +719,11 @@
         
         // 安全地执行showStep，防止错误
         function showStepSafely(stepId) {
-            if (!stepId) {
-                console.error('showStepSafely: 提供的stepId为空');
-                return;
-            }
-            
-            try {
-                console.log(`尝试显示步骤: ${stepId}`);
-                
-                // 先确认目标步骤元素存在
-                const targetStep = document.getElementById(stepId);
-                if (!targetStep) {
-                    console.error(`步骤元素不存在: #${stepId}`);
-                    return;
-                }
-                
-                // 尝试使用showStep函数切换步骤
-                if (typeof showStep === 'function') {
-                    showStep(stepId);
-                } else {
-                    console.error('showStep函数不存在，使用备用方案');
-                    
-                    // 备用方案：直接修改DOM
-                    document.querySelectorAll('.step-content').forEach(step => {
-                        step.classList.remove('active');
-                    });
-                    
-                    targetStep.classList.add('active');
-                    
-                    // 更新步骤导航状态
-                    document.querySelectorAll('.step-link').forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('data-step') === stepId) {
-                            link.classList.add('active');
-                        }
-                    });
-                    
-                    console.log(`已直接切换到步骤: ${stepId}`);
-                }
-            } catch (error) {
-                console.error(`显示步骤 ${stepId} 时出错:`, error);
-                
-                // 紧急修复：直接切换DOM
-                document.querySelectorAll('.step-content').forEach(step => {
-                    step.classList.remove('active');
-                });
-                
-                const targetStep = document.getElementById(stepId);
-                if (targetStep) {
-                    targetStep.classList.add('active');
-                    console.log(`已直接切换到步骤: ${stepId}`);
-                } else {
-                    console.error(`找不到步骤元素: #${stepId}`);
-                }
+            // 使用全局window.showStepSafely函数
+            if (window.showStepSafely) {
+                window.showStepSafely(stepId);
+            } else {
+                console.error('全局showStepSafely函数未找到');
             }
         }
         
@@ -787,6 +739,11 @@
             try {
                 // 显示加载指示器
                 document.getElementById('loading-indicator').style.display = 'block';
+                
+                // 调试日志：记录实际使用的URL
+                console.log('开始请求主题ID:', themeId, '的详情');
+                console.log('API基础URL:', themeAPI.getBaseUrl ? themeAPI.getBaseUrl() : 'BASE_URL无法访问');
+                console.log('当前页面域名:', window.location.hostname);
                 
                 // 获取主题详情
                 const theme = await themeAPI.getThemeDetail(themeId);

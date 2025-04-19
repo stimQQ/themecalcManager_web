@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 修复图片预览功能
     initPreviewFunctions();
+    
+    // 修复11: 确保"保存继续"按钮正常工作
+    fixStepButtons();
 });
 
 /**
@@ -564,14 +567,16 @@ async function updateThemeDirectly(themeId, formData) {
             throw new Error('未登录或认证令牌缺失，请重新登录');
         }
         
-        const response = await fetch(`https://www.themecalc.com/api/skin/${themeId}`, {
+        // 通过本地代理发送请求
+        const response = await fetch('/api/skin/update', {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: processedFormData,
-            credentials: 'omit',
+            credentials: 'include',  // 改为 include 以传递凭证
             mode: 'cors'
         });
         
@@ -638,14 +643,16 @@ async function createThemeDirectly(formData) {
             throw new Error('未登录或认证令牌缺失，请重新登录');
         }
         
-        const response = await fetch('https://www.themecalc.com/api/skin/create', {
+        // 通过本地代理发送请求
+        const response = await fetch('/api/skin/create', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: processedFormData,
-            credentials: 'omit',
+            credentials: 'include',  // 改为 include 以传递凭证
             mode: 'cors'
         });
         
@@ -895,6 +902,57 @@ window.ourShowStep = function(stepId) {
     console.log(`已切换到步骤: ${stepId}`);
 }
 
+// 全局步骤切换函数，用于安全地切换表单步骤
+window.showStepSafely = function(stepId) {
+    if (!stepId) {
+        console.error('showStepSafely: 提供的stepId为空');
+        return;
+    }
+    
+    try {
+        console.log(`[全局] 正在切换到步骤: ${stepId}`);
+        
+        // 确认目标步骤元素存在
+        const targetStep = document.getElementById(stepId);
+        if (!targetStep) {
+            console.error(`步骤元素不存在: #${stepId}`);
+            return;
+        }
+        
+        // 隐藏所有步骤内容
+        document.querySelectorAll('.step-content').forEach(step => {
+            step.classList.remove('active');
+        });
+        
+        // 显示目标步骤
+        targetStep.classList.add('active');
+        
+        // 更新步骤导航状态
+        document.querySelectorAll('.step-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('data-step') === stepId) {
+                link.classList.add('active');
+            }
+        });
+        
+        // 更新子菜单状态
+        document.querySelectorAll('.submenu-item').forEach(item => {
+            item.classList.remove('active');
+            const link = item.querySelector(`.submenu-link[data-step="${stepId}"]`);
+            if (link) {
+                item.classList.add('active');
+            }
+        });
+        
+        // 滚动到页面顶部
+        window.scrollTo(0, 0);
+        
+        console.log(`[全局] 已成功切换到步骤: ${stepId}`);
+    } catch (error) {
+        console.error(`切换到步骤 ${stepId} 时出错:`, error);
+    }
+};
+
 // 替换为我们的showStep函数
 window.showStep = window.ourShowStep;
 
@@ -1018,8 +1076,7 @@ function setupDefaultButtonImageSetting() {
             useImageCheckbox.checked = true;
             
             // 触发一次change事件，确保相关UI也正确更新
-            const event = new Event('change');
-            useImageCheckbox.dispatchEvent(event);
+            useImageCheckbox.dispatchEvent(new Event('change'));
             
             // 更新按钮类型的可见性
             if (typeof updateButtonTypeVisibility === 'function') {
@@ -1028,11 +1085,11 @@ function setupDefaultButtonImageSetting() {
         }
     });
     
-    console.log('已将所有按钮皮肤默认设置为使用图片');
+    console.log('已设置按钮默认使用图片');
 }
 
 /**
- * 修复10: Tabbar背景透明度滑块联动
+ * 修复10: 修复tabbar背景透明度滑块
  */
 function setupTabbarOpacitySlider() {
     const slider = document.getElementById('tabbar_opacity');
@@ -1170,4 +1227,89 @@ function setupButtonsDisplay() {
     });
     
     console.log('已修改按钮类型设置为全部展开模式');
+}
+
+/**
+ * 修复11: 确保"保存继续"按钮正常工作
+ */
+function fixStepButtons() {
+    console.log('重新绑定所有步骤按钮事件...');
+    
+    // 修复下一步/"保存继续"按钮
+    document.querySelectorAll('.next-step').forEach(button => {
+        // 克隆按钮以清除旧的事件监听器
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        // 给新按钮添加事件监听器
+        newButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const nextStep = this.getAttribute('data-next');
+            console.log('下一步按钮被点击，目标：', nextStep);
+            
+            if (nextStep) {
+                // 直接调用全局showStepSafely函数
+                window.showStepSafely(nextStep);
+            }
+        });
+    });
+    
+    // 修复上一步按钮
+    document.querySelectorAll('.prev-step').forEach(button => {
+        // 克隆按钮以清除旧的事件监听器
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        // 给新按钮添加事件监听器
+        newButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const prevStep = this.getAttribute('data-prev');
+            console.log('上一步按钮被点击，目标：', prevStep);
+            
+            if (prevStep) {
+                // 直接调用全局showStepSafely函数
+                window.showStepSafely(prevStep);
+            }
+        });
+    });
+    
+    // 修复步骤导航链接
+    document.querySelectorAll('.step-link').forEach(link => {
+        // 克隆链接以清除旧的事件监听器
+        const newLink = link.cloneNode(true);
+        link.parentNode.replaceChild(newLink, link);
+        
+        // 给新链接添加事件监听器
+        newLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetStep = this.getAttribute('data-step');
+            console.log('步骤链接被点击，目标：', targetStep);
+            
+            if (targetStep) {
+                // 直接调用全局showStepSafely函数
+                window.showStepSafely(targetStep);
+            }
+        });
+    });
+    
+    // 修复子菜单链接
+    document.querySelectorAll('.submenu-link').forEach(link => {
+        // 克隆链接以清除旧的事件监听器
+        const newLink = link.cloneNode(true);
+        link.parentNode.replaceChild(newLink, link);
+        
+        // 给新链接添加事件监听器
+        newLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetStep = this.getAttribute('data-step');
+            console.log('子菜单链接被点击，目标：', targetStep);
+            
+            if (targetStep) {
+                // 直接调用全局showStepSafely函数
+                window.showStepSafely(targetStep);
+            }
+        });
+    });
+    
+    console.log('已重新绑定所有步骤按钮事件');
 } 

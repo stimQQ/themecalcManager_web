@@ -6,6 +6,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
+const { createProxyMiddleware } = require('http-proxy-middleware'); // 引入代理中间件
 const app = express();
 const PORT = 5005;
 
@@ -18,6 +19,66 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
+
+// --- 添加 API 代理中间件 ---
+app.use('/api', createProxyMiddleware({
+  target: 'https://www.themecalc.com', // 目标 API 服务器
+  changeOrigin: true, // 需要虚拟托管站点
+  pathRewrite: {'^/api' : '/api'}, // 重写路径，确保后端收到正确的路径
+  logLevel: 'debug', // 打印代理日志，方便调试
+  onProxyReq: (proxyReq, req, res) => {
+    // 确保 Content-Type 和 Origin header 被正确设置
+    if (!proxyReq.getHeader('Content-Type') && req.body) {
+      if (req.body instanceof Buffer) {
+        // 如果是 Buffer (例如 Multipart Form Data), 不设置 content-type
+        // 让浏览器自动设置正确的 boundary
+      } else {
+        proxyReq.setHeader('Content-Type', 'application/json');
+      }
+    }
+    
+    // 确保传递 Authorization 头
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+      proxyReq.setHeader('Authorization', authHeader);
+    }
+    
+    proxyReq.setHeader('Origin', 'https://www.themecalc.com');
+    
+    // 打印详细信息便于调试
+    console.log(`[Proxy] Forwarding ${req.method} request: ${req.url} -> ${proxyReq.path}`);
+    console.log(`[Proxy] Headers: ${JSON.stringify(proxyReq.getHeaders())}`);
+    
+    // 如果是 POST/PUT 请求且有请求体，确保正确传递
+    if (req.body && (req.method === 'POST' || req.method === 'PUT')) {
+      const bodyData = JSON.stringify(req.body);
+      // 更新 Content-Length
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      // 写入请求体
+      proxyReq.write(bodyData);
+    }
+  },
+  onError: (err, req, res) => {
+    console.error('[Proxy] Error:', err);
+    res.writeHead(500, {
+      'Content-Type': 'text/plain',
+    });
+    res.end(`Proxy Error: ${err.message}`);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    console.log(`[Proxy] Received response from target: ${proxyRes.statusCode}`);
+    
+    // 记录响应头，帮助调试 CORS 问题
+    console.log(`[Proxy] Response headers: ${JSON.stringify(proxyRes.headers)}`);
+    
+    // 添加 CORS 头到响应
+    proxyRes.headers['Access-Control-Allow-Origin'] = req.headers.origin || '*';
+    proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+    proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Accept, Origin';
+    proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
+  }
+}));
+// --- API 代理中间件结束 ---
 
 // 强化CORS配置，允许跨域请求
 app.use((req, res, next) => {
