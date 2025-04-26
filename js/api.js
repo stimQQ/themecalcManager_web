@@ -11,7 +11,7 @@ const themeAPI = (function() {
   
   console.log('API模块使用的基础URL:', BASE_URL);
   
-  // 请求头设置
+  // JSON请求头设置
   function getHeaders() {
     const headers = new Headers();
     headers.append('Accept', 'application/json');
@@ -29,9 +29,34 @@ const themeAPI = (function() {
     return headers;
   }
   
+  // FormData请求头设置（不包含Content-Type，让浏览器自动设置multipart/form-data）
+  function getFormDataHeaders() {
+    const headers = new Headers();
+    headers.append('Accept', 'application/json');
+    headers.append('Origin', window.location.origin);
+    
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      console.log('添加认证头到FormData请求: Bearer Token');
+      headers.append('Authorization', `Bearer ${token}`);
+    } else {
+      console.warn('未找到认证令牌，表单请求将不包含Authorization头');
+    }
+    
+    return headers;
+  }
+  
   // 处理API响应
   const handleResponse = async (response) => {
     console.log(`API响应状态: ${response.status} ${response.statusText}`);
+    
+    // 处理401未授权错误
+    if (response.status === 401) {
+      console.error('认证失败 (401 Unauthorized)');
+      localStorage.removeItem('auth_token');
+      window.location.href = 'login.html';
+      throw new Error('认证失败，请重新登录');
+    }
     
     const responseText = await response.text();
     let data;
@@ -62,12 +87,19 @@ const themeAPI = (function() {
   const getThemes = async (params = {}) => {
     const queryParams = new URLSearchParams();
     
-    // 添加分页参数
+    // 添加分页参数 - 支持不同的参数名格式
     if (params.page) queryParams.append('page', params.page);
     if (params.per_page) queryParams.append('per_page', params.per_page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    
+    // 限制每页数量，避免请求过大
+    if (!queryParams.has('per_page') && !queryParams.has('limit')) {
+      queryParams.append('per_page', '10'); // 默认每页10条
+    }
     
     // 添加筛选参数
     if (params.search) queryParams.append('search', params.search);
+    if (params.query) queryParams.append('query', params.query);
     if (params.is_paid !== undefined && params.is_paid !== null) {
       queryParams.append('is_paid', params.is_paid.toString());
     }
@@ -84,25 +116,96 @@ const themeAPI = (function() {
     try {
       // 使用AbortController实现请求超时
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15秒超时
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: getHeaders(),
-        // 禁用缓存
-        cache: 'no-store',
-        // 添加CORS设置
-        credentials: 'omit',
-        mode: 'cors',
-        // 添加信号控制器
-        signal: controller.signal
-      });
+      // 尝试分段获取，避免响应过大
+      let retryCount = 0;
+      const MAX_RETRIES = 2;
       
-      // 清除超时定时器
+      while (retryCount <= MAX_RETRIES) {
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: getHeaders(),
+            // 禁用缓存
+            cache: 'no-store',
+            // 添加CORS设置
+            credentials: 'omit',
+            mode: 'cors',
+            // 添加信号控制器
+            signal: controller.signal
+          });
+          
+          // 处理413错误 - 响应过大
+          if (response.status === 413) {
+            console.warn('响应过大(413)，尝试减少每页数量...');
+            
+            // 如果是第一次尝试，减少每页数量并重试
+            if (retryCount === 0) {
+              queryParams.set('per_page', '5'); // 减少到每页5条
+              const newUrl = `${BASE_URL}/skin?${queryParams.toString()}`;
+              console.log('使用减小的请求参数重试:', newUrl);
+              retryCount++;
+              continue;
+            }
+            
+            // 如果是第二次尝试，进一步减少并使用简化参数
+            if (retryCount === 1) {
+              // 创建一个最简单的参数，只保留分页
+              const minimalParams = new URLSearchParams();
+              minimalParams.append('page', '1');
+              minimalParams.append('per_page', '3');
+              minimalParams.append('_', new Date().getTime());
+              
+              const minimalUrl = `${BASE_URL}/skin?${minimalParams.toString()}`;
+              console.log('使用最小化请求参数重试:', minimalUrl);
+              retryCount++;
+              
+              const minResponse = await fetch(minimalUrl, {
+                method: 'GET',
+                headers: getHeaders(),
+                cache: 'no-store',
+                credentials: 'omit',
+                mode: 'cors',
+                signal: controller.signal
+              });
+              
+              clearTimeout(timeoutId);
+              
+              // 如果最简请求仍然失败，返回一个空结果
+              if (!minResponse.ok) {
+                console.error('所有尝试均失败，返回空结果');
+                return { 
+                  data: {
+                    themes: [],
+                    total: 0,
+                    current_page: 1,
+                    pages: 1
+                  }
+                };
+              }
+              
+              return await handleResponse(minResponse);
+            }
+          }
+          
+          // 成功获取结果，清除超时并返回
+          clearTimeout(timeoutId);
+          return await handleResponse(response);
+        } catch (retryError) {
+          console.error(`尝试 ${retryCount + 1}/${MAX_RETRIES + 1} 失败:`, retryError);
+          retryCount++;
+          
+          // 最后一次尝试失败，抛出错误
+          if (retryCount > MAX_RETRIES) {
+            throw retryError;
+          }
+        }
+      }
+    } catch (error) {
+      // 确保超时定时器被清除
       clearTimeout(timeoutId);
       
-      return await handleResponse(response);
-    } catch (error) {
       // 特殊处理AbortError（超时）
       if (error.name === 'AbortError') {
         throw new Error('请求超时，请检查网络连接');
@@ -255,15 +358,11 @@ const themeAPI = (function() {
       // 添加版本号参数，避免缓存
       const timestamp = new Date().getTime();
       
-      // 创建主题使用multipart/form-data格式，不设置Content-Type让浏览器自动设置
-      const response = await fetch(`${BASE_URL}/skin/create?_=${timestamp}`, {
+      // 发送请求时使用FormData请求头
+      const response = await fetch(`${BASE_URL}/skin`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Origin': window.location.origin  // 添加正确的Origin
-        },
+        headers: getFormDataHeaders(), // 使用FormData专用头
         body: processedFormData,
-        // 添加跨域设置
         credentials: 'omit',
         mode: 'cors'
       });
@@ -359,16 +458,11 @@ const themeAPI = (function() {
         processedFormData.set('has_global_background_image', 'true');
       }
       
-      // 使用正确的API端点
-      console.log(`发送更新请求到: ${BASE_URL}/skin/${id}`);
+      // 发送请求时使用FormData请求头
       const response = await fetch(`${BASE_URL}/skin/${id}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Origin': window.location.origin  // 添加正确的Origin
-        },
+        headers: getFormDataHeaders(), // 使用FormData专用头
         body: processedFormData,
-        // 添加跨域设置
         credentials: 'omit',
         mode: 'cors'
       });

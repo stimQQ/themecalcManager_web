@@ -1,4 +1,4 @@
-<!-- 侧边栏组件 -->
+<!-- 左侧导航栏 -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-brand">主题管理系统</div>
@@ -16,4 +16,18 @@
             </a>
         </li>
     </ul>
-</div> 
+</div>
+
+<script>
+    // 侧边栏切换按钮事件
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        const sidebar = document.getElementById('sidebar');
+        
+        if (toggleSidebarBtn && sidebar) {
+            toggleSidebarBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+        }
+    });
+</script> 

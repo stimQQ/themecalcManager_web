@@ -4,7 +4,7 @@
 
 // 当前页码和每页数量
 let currentPage = 1;
-const pageSize = 12;
+const pageSize = 5; // 减小每页数量，避免413错误
 
 // 搜索参数
 let searchParams = {
@@ -36,18 +36,21 @@ async function loadThemes() {
         showLoading();
         
         // 构建请求参数
-        const params = new URLSearchParams({
+        const params = {
             page: currentPage,
-            limit: pageSize
-        });
+            per_page: pageSize
+        };
         
         if (searchParams.query) {
-            params.append('query', searchParams.query);
+            params.search = searchParams.query;
         }
         
-        if (searchParams.isPaid !== '') {
-            params.append('is_paid', searchParams.isPaid);
+        if (searchParams.isPaid) {
+            params.is_paid = searchParams.isPaid;
         }
+        
+        // 添加时间戳避免缓存
+        params.timestamp = new Date().getTime();
         
         // 调用API获取主题列表
         const response = await api.getThemes(params);

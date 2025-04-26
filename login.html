@@ -46,6 +46,9 @@
         </div>
     </div>
     
+    <!-- 引入认证API脚本 -->
+    <script src="js/auth.js"></script>
+    
     <script>
         // 显示消息函数
         function showMessage(message, type) {
@@ -86,84 +89,15 @@
                 console.log('正在发送登录请求...');
                 console.log(`用户名: ${username}`);
                 
-                // 使用本地代理而非直接访问远程API
-                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const apiBaseUrl = 'https://www.themecalc.com/api';
-                
-                console.log('使用API基础URL:', apiBaseUrl);
-                
-                // 发送登录请求，使用与Apifox完全一致的格式
-                const response = await fetch(`${apiBaseUrl}/user_admin/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Origin': window.location.origin  // 动态获取当前域名
-                    },
-                    body: JSON.stringify({
-                        "username": username,
-                        "password": password
-                    }),
-                    mode: 'cors',
-                    credentials: 'omit'
-                });
-                
-                console.log('收到服务器响应:', response.status);
-                
-                // 尝试解析响应，即使状态码不是200
-                let responseData;
-                const responseText = await response.text();
-                
-                try {
-                    // 尝试将响应解析为JSON
-                    responseData = JSON.parse(responseText);
-                    console.log('响应数据:', responseData);
-                } catch (e) {
-                    console.error('无法解析响应JSON:', responseText);
-                    responseData = { message: '服务器响应格式错误' };
-                }
-                
-                if (!response.ok) {
-                    // 使用服务器返回的错误信息，或者默认错误信息
-                    throw new Error(responseData.message || `登录失败: ${response.status} ${response.statusText}`);
-                }
+                // 使用新的authAPI进行登录
+                const loginResponse = await authAPI.login(username, password);
                 
                 // 登录成功
-                console.log('登录成功！响应数据:', responseData);
-                
-                // 解析token，处理不同的响应格式
-                let token = '';
-                if (responseData.token) {
-                    token = responseData.token;
-                } else if (responseData.data && responseData.data.token) {
-                    token = responseData.data.token;
-                } else {
-                    // 尝试在整个响应中查找token
-                    for (const key in responseData) {
-                        if (typeof responseData[key] === 'string' && 
-                            (responseData[key].startsWith('eyJ') || key.toLowerCase().includes('token'))) {
-                            token = responseData[key];
-                            break;
-                        }
-                        
-                        // 检查嵌套对象
-                        if (typeof responseData[key] === 'object' && responseData[key] !== null) {
-                            if (responseData[key].token) {
-                                token = responseData[key].token;
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                if (!token) {
-                    console.error('响应中没有找到token:', responseData);
-                    throw new Error('服务器响应中未包含认证令牌');
-                }
+                console.log('登录成功！响应数据:', loginResponse);
                 
                 // 存储token
-                localStorage.setItem('auth_token', token);
-                console.log('已保存token到localStorage:', token);
+                localStorage.setItem('auth_token', loginResponse.token);
+                console.log('已保存token到localStorage');
                 
                 // 显示成功消息
                 showMessage('登录成功，正在跳转...', 'success');
@@ -190,37 +124,21 @@
             if (token) {
                 console.log('检测到已存在的token，尝试验证...');
                 
-                // 检查是否为本地开发环境
-                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                // 根据环境设置API基础URL，确保使用当前网页的域名和端口
-                const apiBaseUrl = 'https://www.themecalc.com/api';
-                
-                console.log('使用API基础URL:', apiBaseUrl);
-                
-                // 验证token是否有效
-                fetch(`${apiBaseUrl}/skin?page=1&per_page=1`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
-                        'Origin': window.location.origin  // 动态获取当前域名
-                    },
-                    credentials: 'omit',
-                    mode: 'cors'
-                })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('Token有效，重定向到主页');
-                        window.location.href = 'index.html';
-                    } else {
-                        console.log('Token无效，清除并保持在登录页面');
+                // 使用新的authAPI验证token
+                authAPI.verifyToken(token)
+                    .then(isValid => {
+                        if (isValid) {
+                            console.log('Token有效，重定向到主页');
+                            window.location.href = 'index.html';
+                        } else {
+                            console.log('Token无效，清除并保持在登录页面');
+                            localStorage.removeItem('auth_token');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('验证token时出错:', error);
                         localStorage.removeItem('auth_token');
-                    }
-                })
-                .catch(error => {
-                    console.error('验证token时出错:', error);
-                    localStorage.removeItem('auth_token');
-                });
+                    });
             } else {
                 console.log('未找到token，保持在登录页面');
             }
