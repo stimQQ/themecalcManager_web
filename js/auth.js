@@ -1,197 +1,251 @@
 /**
- * 计算器皮肤主题管理系统 - 认证API
+ * 计算器皮肤主题管理系统 - 认证API封装
  */
 const authAPI = (function() {
-  // 使用与主API相同的基础URL
-  const BASE_URL = 'https://www.themecalc.com/api';
-  
-  console.log('认证API模块初始化，使用基础URL:', BASE_URL);
-  
-  /**
-   * 用户登录
-   * @param {string} username - 用户名
-   * @param {string} password - 密码
-   * @returns {Promise<Object>} - 登录结果，包含token
-   */
-  const login = async (username, password) => {
-    try {
-      console.log('开始登录请求处理...');
-      console.log(`用户名: ${username}`);
-      
-      const loginData = {
-        username: username,
-        password: password
-      };
-      
-      console.log('发送登录请求到:', `${BASE_URL}/user_admin/login`);
-      
-      // 使用与APIPost相同的请求格式
-      const response = await fetch(`${BASE_URL}/user_admin/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': window.location.origin
-        },
-        body: JSON.stringify(loginData),
-        mode: 'cors',
-        credentials: 'omit'
-      });
-      
-      console.log('收到登录响应，状态码:', response.status);
-      
-      // 读取响应内容
-      const responseText = await response.text();
-      let data;
-      
-      try {
-        // 尝试解析响应为JSON
-        data = JSON.parse(responseText);
-        console.log('解析响应为JSON:', data);
-      } catch (e) {
-        console.error('解析响应JSON失败:', e);
-        console.log('原始响应内容:', responseText);
-        throw new Error('服务器响应格式错误');
-      }
-      
-      // 检查响应状态
-      if (!response.ok) {
-        const errorMessage = data.message || `登录失败: ${response.status} ${response.statusText}`;
-        console.error('登录失败:', errorMessage);
-        throw new Error(errorMessage);
-      }
-      
-      // 登录成功，从响应中获取token
-      const token = data.token;
-      
-      if (!token) {
-        console.error('响应中没有token:', data);
-        throw new Error('响应中未包含认证令牌');
-      }
-      
-      console.log('登录成功，已获取token');
-      
-      // 返回登录结果
-      return {
-        success: true,
-        token: token,
-        message: data.message || '登录成功'
-      };
-    } catch (error) {
-      console.error('登录处理过程中出错:', error);
-      throw error;
+    // 基础URL定义 - 与主API保持一致
+    const WWW_BASE_URL = 'https://www.themecalc.com/api';
+    
+    // 登录URL
+    const LOGIN_URL = `${WWW_BASE_URL}/user_admin/login`;
+    
+    // 存储认证令牌的key
+    const TOKEN_KEY = 'auth_token';
+    
+    // 获取JSON请求头
+    function getHeaders() {
+        const headers = new Headers();
+        headers.append('Accept', 'application/json');
+        headers.append('Content-Type', 'application/json');
+        headers.append('Origin', window.location.origin);
+        
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+            console.log('添加认证头: Bearer Token');
+            headers.append('Authorization', `Bearer ${token}`);
+        }
+        
+        return headers;
     }
-  };
-  
-  /**
-   * 验证令牌是否有效
-   * @param {string} token - 认证令牌
-   * @returns {Promise<boolean>} - 令牌是否有效
-   */
-  const verifyToken = async (token) => {
-    try {
-      console.log('开始验证token有效性...');
-      
-      // 先尝试一个轻量级请求验证token
-      const verifyUrl = `${BASE_URL}/verify_token`;
-      try {
-        const response = await fetch(verifyUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-            'Origin': window.location.origin
-          },
-          credentials: 'omit',
-          mode: 'cors',
-          cache: 'no-store'
-        });
+    
+    /**
+     * 用户登录
+     * @param {string} username - 用户名
+     * @param {string} password - 密码
+     * @returns {Promise<Object>} - 登录结果，包含token
+     */
+    async function login(username, password) {
+        console.log(`尝试登录用户: ${username}`);
         
-        // 如果响应成功，则token有效
-        if (response.ok) {
-          console.log('Token验证成功');
-          return true;
+        try {
+            // 使用AbortController实现请求超时
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+            
+            const response = await fetch(LOGIN_URL, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Origin': window.location.origin
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+                credentials: 'omit',
+                mode: 'cors',
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            console.log(`登录响应状态: ${response.status} ${response.statusText}`);
+            
+            const responseText = await response.text();
+            let data;
+            
+            try {
+                // 尝试解析JSON响应
+                data = responseText ? JSON.parse(responseText) : {};
+                console.log('登录响应数据:', data);
+            } catch (e) {
+                console.error('解析登录响应JSON失败:', e);
+                throw new Error('无法解析服务器响应');
+            }
+            
+            if (!response.ok) {
+                // 处理错误状态码
+                const errorMessage = data.message || data.error || `登录失败，状态码: ${response.status}`;
+                console.error('登录错误:', errorMessage);
+                throw new Error(errorMessage);
+            }
+            
+            // 验证响应中是否包含token
+            const token = data.token || data.access_token || (data.data && data.data.token);
+            
+            if (!token) {
+                console.error('登录响应中未找到token:', data);
+                throw new Error('登录成功但未返回有效的认证令牌');
+            }
+            
+            // 存储token
+            localStorage.setItem(TOKEN_KEY, token);
+            console.log('登录成功，已保存认证令牌');
+            
+            // 返回登录结果
+            return {
+                success: true,
+                token: token,
+                user: data.user || data.data || {}
+            };
+        } catch (error) {
+            // 特殊处理AbortError（超时）
+            if (error.name === 'AbortError') {
+                throw new Error('登录请求超时，请检查网络连接');
+            }
+            
+            console.error('登录失败:', error);
+            throw error;
         }
-        
-        // 如果是401未授权，token无效
-        if (response.status === 401) {
-          console.log('Token验证失败: 401 Unauthorized');
-          return false;
-        }
-      } catch (e) {
-        console.warn('轻量级token验证失败，尝试备用方法: ', e);
-        // 继续使用备用验证方法
-      }
-      
-      // 备用方法：使用一个非常小的分页请求验证token
-      const minimalParams = new URLSearchParams();
-      minimalParams.append('page', '1');
-      minimalParams.append('per_page', '1');
-      minimalParams.append('_', new Date().getTime());
-      
-      // 使用令牌尝试获取资源
-      const response = await fetch(`${BASE_URL}/skin?${minimalParams.toString()}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'Origin': window.location.origin
-        },
-        credentials: 'omit',
-        mode: 'cors',
-        cache: 'no-store'
-      });
-      
-      // 检查响应状态
-      console.log(`备用验证方法结果: ${response.status} ${response.statusText}`);
-      return response.ok;
-    } catch (error) {
-      console.error('验证令牌出错:', error);
-      
-      // 如果是网络错误，尝试一次本地验证
-      // 检查token格式是否正确
-      const tokenParts = token.split('.');
-      if (tokenParts.length !== 3) {
-        console.error('Token格式无效');
-        return false;
-      }
-      
-      try {
-        // 解析JWT的payload部分
-        const payload = JSON.parse(atob(tokenParts[1]));
-        
-        // 检查是否过期
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < currentTime) {
-          console.error('Token已过期');
-          return false;
-        }
-        
-        // 在无法联网的情况下，假设token有效
-        console.log('无法联网验证token，但token格式正确且未过期');
-        return true;
-      } catch (e) {
-        console.error('解析Token失败:', e);
-        return false;
-      }
     }
-  };
-  
-  /**
-   * 注销 - 清除存储的令牌
-   */
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    console.log('已清除认证令牌，完成注销');
-  };
-  
-  // 导出认证方法
-  return {
-    login,
-    verifyToken,
-    logout
-  };
+    
+    /**
+     * 验证当前保存的令牌是否有效
+     * @returns {Promise<boolean>} - 令牌是否有效
+     */
+    async function verifyToken() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        
+        if (!token) {
+            console.warn('未找到认证令牌');
+            return false;
+        }
+        
+        try {
+            // 获取当前token的信息
+            const tokenInfo = parseJwt(token);
+            console.log('当前令牌信息:', tokenInfo);
+            
+            // 检查令牌是否过期
+            if (tokenInfo && tokenInfo.exp) {
+                const expiryDate = new Date(tokenInfo.exp * 1000);
+                const now = new Date();
+                
+                console.log(`令牌过期时间: ${expiryDate.toLocaleString()}, 当前时间: ${now.toLocaleString()}`);
+                
+                // 如果令牌已过期，直接返回false
+                if (expiryDate <= now) {
+                    console.warn('令牌已过期');
+                    return false;
+                }
+            }
+            
+            // 尝试请求用户资料以验证令牌有效性
+            console.log('验证令牌有效性...');
+            const verifyUrl = `${WWW_BASE_URL}/user/profile`;
+            
+            const response = await fetch(verifyUrl, {
+                method: 'GET',
+                headers: getHeaders(),
+                credentials: 'omit',
+                mode: 'cors'
+            });
+            
+            console.log(`验证令牌响应状态: ${response.status}`);
+            
+            // 401表示未授权，令牌无效
+            if (response.status === 401) {
+                console.warn('令牌验证失败: 未授权 (401)');
+                return false;
+            }
+            
+            // 如果请求成功，令牌有效
+            return response.ok;
+        } catch (error) {
+            console.error('验证令牌时出错:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * 解析JWT令牌
+     * @param {string} token - JWT令牌
+     * @returns {Object|null} - 解析后的令牌数据
+     */
+    function parseJwt(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            if (!base64Url) return null;
+            
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split('')
+                    .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join('')
+            );
+            
+            return JSON.parse(jsonPayload);
+        } catch (error) {
+            console.error('解析JWT令牌失败:', error);
+            return null;
+        }
+    }
+    
+    /**
+     * 退出登录
+     */
+    function logout() {
+        console.log('执行退出登录操作');
+        localStorage.removeItem(TOKEN_KEY);
+        
+        // 重定向到登录页
+        window.location.href = 'login.html';
+    }
+    
+    /**
+     * 获取当前存储的认证令牌
+     * @returns {string|null} - 认证令牌
+     */
+    function getToken() {
+        return localStorage.getItem(TOKEN_KEY);
+    }
+    
+    /**
+     * 设置认证令牌
+     * @param {string} token - 认证令牌
+     */
+    function setToken(token) {
+        if (token) {
+            localStorage.setItem(TOKEN_KEY, token);
+        } else {
+            localStorage.removeItem(TOKEN_KEY);
+        }
+    }
+    
+    /**
+     * 获取当前登录用户信息
+     * @returns {Object|null} - 用户信息
+     */
+    function getCurrentUser() {
+        const token = getToken();
+        if (!token) return null;
+        
+        const tokenData = parseJwt(token);
+        return tokenData;
+    }
+    
+    // 导出API方法
+    return {
+        login,
+        logout,
+        verifyToken,
+        getToken,
+        setToken,
+        getCurrentUser,
+        parseJwt
+    };
 })();
 
-// 将认证API导出到全局
+// 全局导出
 window.authAPI = authAPI; 

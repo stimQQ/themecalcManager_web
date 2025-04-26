@@ -3,139 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>计算器皮肤主题管理系统</title>
+    <title>计算器皮肤主题管理系统 - 仪表盘</title>
     <!-- DNS预解析 -->
     <link rel="dns-prefetch" href="https://www.themecalc.com">
     <link rel="preconnect" href="https://www.themecalc.com" crossorigin>
     <!-- 预加载关键资源 -->
     <link rel="preload" href="css/styles.css" as="style">
-    <link rel="preload" href="js/api.js" as="script">
     <link rel="preload" href="js/utils.js" as="script">
     <link rel="preload" href="js/auth.js" as="script">
-    <link rel="preload" href="js/theme-list.js" as="script">
     <!-- 样式表 -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="/favicon.ico.png" type="image/png">
+    <!-- 图表库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body>
     <!-- 加载指示器 -->
-    <div id="loading-indicator">
-        <div class="loader"></div>
+    <div id="loadingIndicator" class="loading-indicator">
+        <div class="spinner"></div>
+        <div class="loading-message">加载中...</div>
     </div>
     
-    <!-- 侧边栏切换按钮（移动端显示） -->
-    <button id="toggle-sidebar" class="toggle-sidebar">☰</button>
+    <!-- 消息容器 -->
+    <div id="messagesContainer" class="messages-container"></div>
     
     <!-- 页面容器 -->
     <div class="page-container">
-        <!-- 左侧导航栏（使用组件） -->
-        <div id="sidebar-container"></div>
-        
-        <!-- 主要内容 -->
-        <div class="main-content-wrapper">
-            <!-- 头部（使用组件） -->
-            <div id="header-container"></div>
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">ThemeCalc</h1>
+                <span class="sidebar-close">&times;</span>
+            </div>
             
-            <!-- 主要内容区域 -->
-            <div class="container">
-                <!-- 消息显示区域 -->
-                <div id="message" class="message"></div>
-                
-                <!-- 主题列表页面 -->
-                <div id="theme-list-page" class="page-content">
-                    <div class="main-content">
-                        <!-- 工具栏 -->
-                        <div class="toolbar">
-                            <form id="search-form" class="search-form">
-                                <input type="text" id="search-input" placeholder="搜索主题名称或创建者">
-                                <select id="filter-paid">
-                                    <option value="">全部主题</option>
-                                    <option value="true">付费主题</option>
-                                    <option value="false">免费主题</option>
-                                </select>
-                                <button type="submit" class="btn">搜索</button>
-                                <button type="button" id="reset-search" class="btn">重置</button>
-                            </form>
-                            
-                            <div class="action-buttons">
-                                <button id="new-theme-button" class="btn">创建新主题</button>
-                            </div>
-                        </div>
-                        
-                        <!-- 主题列表 -->
-                        <div id="theme-list" class="theme-list">
-                            <!-- 主题卡片将通过JavaScript动态添加 -->
-                            <div class="no-themes">加载中...</div>
-                        </div>
-                        
-                        <!-- 分页 -->
-                        <div id="pagination" class="pagination"></div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active"><a href="index.html"><span class="icon">📊</span> 仪表盘</a></li>
+                    <li><a href="themes.html"><span class="icon">🎨</span> 主题管理</a></li>
+                    <li><a href="users.html"><span class="icon">👥</span> 用户管理</a></li>
+                    <li><a href="settings.html"><span class="icon">⚙️</span> 系统设置</a></li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <span class="avatar-placeholder">👤</span>
+                    </div>
+                    <div class="user-details">
+                        <span id="userName" class="user-name">加载中...</span>
+                        <span id="userRole" class="user-role">管理员</span>
                     </div>
                 </div>
+                
+                <button id="logoutBtn" class="logout-btn">退出登录</button>
             </div>
-        </div>
+        </aside>
+        
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <header class="main-header">
+                <button class="menu-toggle">☰</button>
+                <h2>仪表盘</h2>
+                <div class="header-actions">
+                    <div class="date-display" id="currentDate"></div>
+                </div>
+            </header>
+            
+            <div class="dashboard">
+                <!-- 摘要卡片 -->
+                <section class="dashboard-summary">
+                    <div class="summary-card">
+                        <div class="summary-icon">🎨</div>
+                        <div class="summary-details">
+                            <h3>总主题数</h3>
+                            <div class="summary-value" id="totalThemes">--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon">👥</div>
+                        <div class="summary-details">
+                            <h3>用户数量</h3>
+                            <div class="summary-value" id="totalUsers">--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon">⬇️</div>
+                        <div class="summary-details">
+                            <h3>本月下载</h3>
+                            <div class="summary-value" id="monthlyDownloads">--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon">💰</div>
+                        <div class="summary-details">
+                            <h3>本月收入</h3>
+                            <div class="summary-value" id="monthlyRevenue">--</div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- 图表区域 -->
+                <section class="dashboard-charts">
+                    <div class="chart-container">
+                        <h3>下载趋势</h3>
+                        <canvas id="downloadsChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>主题分类</h3>
+                        <canvas id="categoriesChart"></canvas>
+                    </div>
+                </section>
+                
+                <!-- 最近活动 -->
+                <section class="recent-activities">
+                    <h3>最近活动</h3>
+                    <div class="activities-list" id="recentActivities">
+                        <div class="loading-placeholder">加载活动记录中...</div>
+                    </div>
+                </section>
+            </div>
+        </main>
     </div>
     
-    <!-- 主题卡片模板容器（将从组件加载） -->
-    <div id="theme-card-template-container"></div>
-    
     <!-- 脚本 -->
-    <script src="js/auth.js"></script>
-    <script src="js/api.js"></script>
     <script src="js/utils.js"></script>
-    <script src="js/theme-list.js"></script>
+    <script src="js/auth.js"></script>
     <script>
         // 检查用户是否已登录
-        (function() {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                console.log('未找到token，将特往登录页面');
-                window.location.href = 'login.html';
-                return;
-            }
+        async function checkLoginStatus() {
+            utils.showLoading('正在验证登录状态...');
             
-            // 验证token是否有效
-            authAPI.verifyToken(token)
-                .then(isValid => {
-                    if (!isValid) {
-                        console.log('Token无效，重定向到登录页面');
-                        localStorage.removeItem('auth_token');
-                        window.location.href = 'login.html';
-                    }
-                })
-                .catch(() => {
-                    console.error('验证token时出错，重定向到登录页面');
-                    localStorage.removeItem('auth_token');
-                    window.location.href = 'login.html';
-                });
-        })();
-    
-        // 加载组件
-        document.addEventListener('DOMContentLoaded', async function() {
-            // 加载侧边栏组件
-            const sidebarResponse = await fetch('components/sidebar.html');
-            const sidebarHtml = await sidebarResponse.text();
-            document.getElementById('sidebar-container').innerHTML = sidebarHtml;
-            
-            // 加载头部组件
-            const headerResponse = await fetch('components/header.html');
-            const headerHtml = await headerResponse.text();
-            document.getElementById('header-container').innerHTML = headerHtml;
-            
-            // 加载主题卡片模板
-            const cardTemplateResponse = await fetch('components/theme-card.html');
-            const cardTemplateHtml = await cardTemplateResponse.text();
-            document.getElementById('theme-card-template-container').innerHTML = cardTemplateHtml;
-            
-            // 绑定退出登录按钮事件
-            const logoutButton = document.getElementById('logout-button');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', function() {
-                    if (confirm('确定要退出登录吗？')) {
+            try {
+                const isLoggedIn = await authAPI.verifyToken();
+                
+                if (!isLoggedIn) {
+                    utils.showMessage('warning', '您的登录已过期，请重新登录', 2000, () => {
                         authAPI.logout();
                         window.location.href = 'login.html';
+                    });
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                utils.showMessage('error', `验证登录状态出错: ${error.message}`, 3000);
+                return false;
+            } finally {
+                utils.hideLoading();
+            }
+        }
+        
+        // 加载用户信息
+        async function loadUserInfo() {
+            try {
+                const token = authAPI.getToken();
+                
+                if (!token) return;
+                
+                const userData = authAPI.getCurrentUser();
+                
+                if (userData && userData.username) {
+                    document.getElementById('userName').textContent = userData.username;
+                    document.getElementById('userRole').textContent = userData.role || '管理员';
+                }
+            } catch (error) {
+                console.error('加载用户信息失败:', error);
+            }
+        }
+        
+        // 加载仪表盘数据
+        async function loadDashboardData() {
+            utils.showLoading('加载仪表盘数据...');
+            
+            try {
+                // 这里应该是从API获取数据，但为了示例，使用模拟数据
+                setTimeout(() => {
+                    // 更新摘要卡片数据
+                    document.getElementById('totalThemes').textContent = '328';
+                    document.getElementById('totalUsers').textContent = '1,245';
+                    document.getElementById('monthlyDownloads').textContent = '8,674';
+                    document.getElementById('monthlyRevenue').textContent = '¥5,283';
+                    
+                    // 渲染下载趋势图表
+                    renderDownloadsChart();
+                    
+                    // 渲染主题分类图表
+                    renderCategoriesChart();
+                    
+                    // 加载最近活动
+                    loadRecentActivities();
+                    
+                    utils.hideLoading();
+                }, 800);
+            } catch (error) {
+                utils.showMessage('error', `加载仪表盘数据失败: ${error.message}`, 3000);
+                utils.hideLoading();
+            }
+        }
+        
+        // 渲染下载趋势图表
+        function renderDownloadsChart() {
+            const ctx = document.getElementById('downloadsChart').getContext('2d');
+            
+            const labels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: '免费主题下载',
+                    data: [2430, 3210, 2850, 3310, 3980, 4250, 3890, 4520, 5210, 5680, 6120, 5880],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }, {
+                    label: '付费主题下载',
+                    data: [420, 580, 510, 690, 780, 950, 870, 1050, 1240, 1380, 1520, 1670],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            };
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
+                }
+            });
+        }
+        
+        // 渲染主题分类图表
+        function renderCategoriesChart() {
+            const ctx = document.getElementById('categoriesChart').getContext('2d');
+            
+            const data = {
+                labels: ['简约', '炫彩', '商务', '暗黑', '自然', '未分类'],
+                datasets: [{
+                    label: '主题数量',
+                    data: [85, 64, 47, 53, 39, 40],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 加载最近活动
+        function loadRecentActivities() {
+            const activitiesContainer = document.getElementById('recentActivities');
+            
+            // 模拟数据
+            const activities = [
+                { type: 'theme_create', user: '张明', theme: '深空蓝调', time: '今天 14:23' },
+                { type: 'theme_update', user: '李红', theme: '极简白', time: '今天 11:05' },
+                { type: 'user_register', user: '王强', time: '昨天 18:47' },
+                { type: 'theme_delete', user: '管理员', theme: '测试主题', time: '昨天 16:30' },
+                { type: 'theme_download', user: '陈小明', theme: '暗夜模式', time: '前天 09:15' }
+            ];
+            
+            activitiesContainer.innerHTML = '';
+            
+            activities.forEach(activity => {
+                const activityEl = document.createElement('div');
+                activityEl.className = 'activity-item';
+                
+                let activityContent = '';
+                
+                switch (activity.type) {
+                    case 'theme_create':
+                        activityContent = `<strong>${activity.user}</strong> 创建了新主题 <strong>${activity.theme}</strong>`;
+                        break;
+                    case 'theme_update':
+                        activityContent = `<strong>${activity.user}</strong> 更新了主题 <strong>${activity.theme}</strong>`;
+                        break;
+                    case 'theme_delete':
+                        activityContent = `<strong>${activity.user}</strong> 删除了主题 <strong>${activity.theme}</strong>`;
+                        break;
+                    case 'user_register':
+                        activityContent = `新用户 <strong>${activity.user}</strong> 注册了账号`;
+                        break;
+                    case 'theme_download':
+                        activityContent = `<strong>${activity.user}</strong> 下载了主题 <strong>${activity.theme}</strong>`;
+                        break;
+                }
+                
+                activityEl.innerHTML = `
+                    <div class="activity-content">${activityContent}</div>
+                    <div class="activity-time">${activity.time}</div>
+                `;
+                
+                activitiesContainer.appendChild(activityEl);
+            });
+        }
+        
+        // 更新当前日期显示
+        function updateDateDisplay() {
+            const dateEl = document.getElementById('currentDate');
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateEl.textContent = now.toLocaleDateString('zh-CN', options);
+        }
+        
+        // 处理退出登录
+        function handleLogout() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    utils.showMessage('info', '正在退出登录...', 1500, () => {
+                        authAPI.logout();
+                        window.location.href = 'login.html';
+                    });
                 });
+            }
+        }
+        
+        // 初始化侧边栏切换
+        function initSidebarToggle() {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarClose = document.querySelector('.sidebar-close');
+            
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('active');
+                });
+                
+                if (sidebarClose) {
+                    sidebarClose.addEventListener('click', () => {
+                        sidebar.classList.remove('active');
+                    });
+                }
+            }
+        }
+        
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 初始化侧边栏切换
+            initSidebarToggle();
+            
+            // 更新日期显示
+            updateDateDisplay();
+            
+            // 处理退出登录
+            handleLogout();
+            
+            // 检查登录状态
+            const isLoggedIn = await checkLoginStatus();
+            
+            if (isLoggedIn) {
+                // 加载用户信息
+                await loadUserInfo();
+                
+                // 加载仪表盘数据
+                await loadDashboardData();
+                
+                utils.showMessage('success', '欢迎回来，仪表盘已更新', 3000);
             }
         });
     </script>

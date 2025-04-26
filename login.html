@@ -3,146 +3,430 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - 计算器皮肤主题管理系统</title>
+    <title>登录 - ThemeCalc管理系统</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="icon" href="/favicon.ico.png" type="image/png">
     <style>
-        .login-loading {
-            display: none;
-            text-align: center;
-            margin-top: 10px;
+        body {
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        .login-error {
-            color: #dc3545;
-            margin-bottom: 15px;
+        
+        .login-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            width: 360px;
+            padding: 30px;
             text-align: center;
+        }
+        
+        .login-logo {
+            margin-bottom: 20px;
+        }
+        
+        .login-logo img {
+            height: 60px;
+        }
+        
+        .login-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #4A90E2;
+            outline: none;
+        }
+        
+        .form-control.error {
+            border-color: #e74c3c;
+        }
+        
+        .field-error {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+        }
+        
+        .remember-me input {
+            margin-right: 8px;
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .login-button:hover {
+            background-color: #3a7bc8;
+        }
+        
+        .login-button:disabled {
+            background-color: #a0c3f0;
+            cursor: not-allowed;
+        }
+        
+        .login-footer {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #999;
+        }
+        
+        #loadingIndicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-container {
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4A90E2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        .loading-message {
+            font-size: 16px;
+            color: #333;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #messagesContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        
+        .message {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            padding: 12px 16px;
+            min-width: 240px;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        
+        .message-show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .message-content {
+            display: flex;
+            align-items: center;
+        }
+        
+        .message-icon {
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .message-success .message-icon {
+            color: #2ecc71;
+        }
+        
+        .message-error .message-icon {
+            color: #e74c3c;
+        }
+        
+        .message-warning .message-icon {
+            color: #f39c12;
+        }
+        
+        .message-info .message-icon {
+            color: #3498db;
+        }
+        
+        .message-text {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .message-close {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            margin-left: 12px;
+            font-size: 18px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+        
+        .message-close:hover {
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="login-container">
-            <div class="login-header">
-                <h1>计算器皮肤主题管理系统</h1>
-                <p>管理员登录</p>
-            </div>
-            
-            <div id="login-error" class="login-error"></div>
-            
-            <form id="login-form" class="login-form">
-                <div class="form-group">
-                    <label for="username">用户名</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">密码</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <button type="submit" class="btn submit-btn">登录</button>
-                <div id="login-loading" class="login-loading">登录中...</div>
-            </form>
+    <!-- 加载指示器 -->
+    <div id="loadingIndicator">
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <div class="loading-message">加载中...</div>
         </div>
     </div>
     
+    <!-- 消息容器 -->
+    <div id="messagesContainer"></div>
+    
+    <div class="login-container">
+        <div class="login-logo">
+            <img src="images/logo.png" alt="ThemeCalc Logo" onerror="this.src='https://via.placeholder.com/200x60?text=ThemeCalc'">
+        </div>
+        <h1 class="login-title">ThemeCalc 管理系统</h1>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" class="form-control" placeholder="请输入用户名" autocomplete="username">
+                <div id="username-error" class="field-error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" class="form-control" placeholder="请输入密码" autocomplete="current-password">
+                <div id="password-error" class="field-error"></div>
+            </div>
+            
+            <div class="form-actions">
+                <label class="remember-me">
+                    <input type="checkbox" id="rememberMe">
+                    <span>记住我</span>
+                </label>
+            </div>
+            
+            <button type="submit" class="login-button" id="loginButton">登 录</button>
+        </form>
+        
+        <div class="login-footer">
+            <p>© 2023 ThemeCalc 管理系统 版权所有</p>
+        </div>
+    </div>
+    
+    <!-- 引入工具脚本 -->
+    <script src="js/utils.js"></script>
     <!-- 引入认证API脚本 -->
     <script src="js/auth.js"></script>
     
     <script>
-        // 显示消息函数
-        function showMessage(message, type) {
-            const errorElement = document.getElementById('login-error');
-            errorElement.textContent = message;
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取表单元素
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const rememberMeCheckbox = document.getElementById('rememberMe');
+            const loginButton = document.getElementById('loginButton');
             
-            // 根据消息类型应用不同的样式
-            if (type === 'success') {
-                errorElement.style.color = '#28a745';
-            } else {
-                errorElement.style.color = '#dc3545';
+            // 检查是否已经登录
+            checkLoginStatus();
+            
+            // 检查本地存储的用户名
+            const savedUsername = localStorage.getItem('rememberedUsername');
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
+                rememberMeCheckbox.checked = true;
             }
             
-            errorElement.style.display = message ? 'block' : 'none';
-        }
-        
-        // 登录表单处理
-        document.getElementById('login-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
+            // 添加表单提交事件
+            loginForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                handleLogin();
+            });
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            // 添加输入事件监听器，清除错误提示
+            usernameInput.addEventListener('input', function() {
+                utils.clearFieldError(usernameInput);
+            });
             
-            if (!username || !password) {
-                showMessage('请输入用户名和密码', 'error');
-                return;
+            passwordInput.addEventListener('input', function() {
+                utils.clearFieldError(passwordInput);
+            });
+            
+            /**
+             * 检查登录状态
+             */
+            function checkLoginStatus() {
+                // 尝试从本地存储获取token
+                const token = localStorage.getItem('authToken');
+                
+                if (token) {
+                    console.log('发现存储的令牌，验证其有效性...');
+                    utils.showLoading('正在验证登录状态...');
+                    
+                    // 验证token有效性
+                    authAPI.verifyToken()
+                        .then(isValid => {
+                            if (isValid) {
+                                console.log('令牌有效，重定向到主页');
+                                utils.showMessage('success', '您已登录，正在跳转到主页...', 1500, function() {
+                                    window.location.href = 'index.html';
+                                });
+                            } else {
+                                console.log('令牌无效或已过期');
+                                utils.hideLoading();
+                                // 清除无效令牌
+                                localStorage.removeItem('authToken');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('验证令牌时出错:', error);
+                            utils.hideLoading();
+                            // 显示错误提示
+                            utils.showMessage('error', '验证登录状态时出错，请重新登录');
+                            // 清除可能无效的令牌
+                            localStorage.removeItem('authToken');
+                        });
+                } else {
+                    console.log('未找到存储的令牌');
+                }
             }
             
-            try {
-                const loadingElement = document.getElementById('login-loading');
-                if (loadingElement) {
-                    loadingElement.style.display = 'block';
+            /**
+             * 处理登录请求
+             */
+            function handleLogin() {
+                // 获取输入值
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                // 验证输入
+                let isValid = true;
+                
+                if (!username) {
+                    utils.showFieldError(usernameInput, '请输入用户名');
+                    isValid = false;
                 }
                 
-                // 清除以前的错误消息
-                showMessage('', '');
-                
-                console.log('正在发送登录请求...');
-                console.log(`用户名: ${username}`);
-                
-                // 使用新的authAPI进行登录
-                const loginResponse = await authAPI.login(username, password);
-                
-                // 登录成功
-                console.log('登录成功！响应数据:', loginResponse);
-                
-                // 存储token
-                localStorage.setItem('auth_token', loginResponse.token);
-                console.log('已保存token到localStorage');
-                
-                // 显示成功消息
-                showMessage('登录成功，正在跳转...', 'success');
-                
-                // 登录成功，跳转到主页
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-            } catch (error) {
-                console.error('登录失败:', error);
-                showMessage(`登录失败: ${error.message}`, 'error');
-            } finally {
-                const loadingElement = document.getElementById('login-loading');
-                if (loadingElement) {
-                    loadingElement.style.display = 'none';
+                if (!password) {
+                    utils.showFieldError(passwordInput, '请输入密码');
+                    isValid = false;
                 }
-            }
-        });
-        
-        // 检查用户是否已登录
-        (function() {
-            const token = localStorage.getItem('auth_token');
-            
-            if (token) {
-                console.log('检测到已存在的token，尝试验证...');
                 
-                // 使用新的authAPI验证token
-                authAPI.verifyToken(token)
-                    .then(isValid => {
-                        if (isValid) {
-                            console.log('Token有效，重定向到主页');
-                            window.location.href = 'index.html';
+                if (!isValid) {
+                    return;
+                }
+                
+                // 禁用登录按钮并显示加载状态
+                loginButton.disabled = true;
+                utils.showLoading('正在登录...');
+                
+                // 执行登录请求
+                authAPI.login(username, password)
+                    .then(response => {
+                        console.log('登录成功:', response);
+                        
+                        // 处理"记住我"选项
+                        if (rememberMeCheckbox.checked) {
+                            localStorage.setItem('rememberedUsername', username);
                         } else {
-                            console.log('Token无效，清除并保持在登录页面');
-                            localStorage.removeItem('auth_token');
+                            localStorage.removeItem('rememberedUsername');
                         }
+                        
+                        // 显示成功消息并重定向
+                        utils.showMessage('success', '登录成功，正在跳转...', 1500, function() {
+                            window.location.href = 'index.html';
+                        });
                     })
                     .catch(error => {
-                        console.error('验证token时出错:', error);
-                        localStorage.removeItem('auth_token');
+                        console.error('登录失败:', error);
+                        utils.hideLoading();
+                        
+                        // 根据错误类型显示不同的错误提示
+                        if (error.status === 401) {
+                            utils.showMessage('error', '用户名或密码错误');
+                        } else if (error.status === 429) {
+                            utils.showMessage('error', '登录尝试次数过多，请稍后再试');
+                        } else {
+                            utils.showMessage('error', `登录失败：${error.message || '服务器错误'}`);
+                        }
+                    })
+                    .finally(() => {
+                        // 恢复登录按钮状态
+                        loginButton.disabled = false;
+                        utils.hideLoading();
                     });
-            } else {
-                console.log('未找到token，保持在登录页面');
             }
-        })();
+        });
     </script>
 </body>
 </html> 

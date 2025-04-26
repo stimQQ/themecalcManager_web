@@ -950,6 +950,23 @@ window.showStepSafely = function(stepId) {
         console.log(`[全局] 已成功切换到步骤: ${stepId}`);
     } catch (error) {
         console.error(`切换到步骤 ${stepId} 时出错:`, error);
+        
+        // 错误处理：尝试基本的步骤切换
+        try {
+            // 隐藏所有步骤内容
+            document.querySelectorAll('.step-content').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // 显示目标步骤
+            const targetStep = document.getElementById(stepId);
+            if (targetStep) {
+                targetStep.classList.add('active');
+                console.log(`[全局] 已使用备用方法切换到步骤: ${stepId}`);
+            }
+        } catch (fallbackError) {
+            console.error(`备用步骤切换也失败:`, fallbackError);
+        }
     }
 };
 
