@@ -112,13 +112,19 @@ app.get('*', (req, res) => {
   // 根据请求路径确定返回的HTML文件
   let htmlFile = 'index.html';
   if (req.path === '/create' || req.path === '/create.html') {
-    htmlFile = 'create.html';
+    res.redirect('https://admin.themecalc.com/create.html');
+    return;
   } else if (req.path === '/edit' || req.path === '/edit.html') {
-    htmlFile = 'edit.html';
+    // 如果有ID参数，传递到重定向URL
+    const id = req.query.id ? `?id=${req.query.id}` : '';
+    res.redirect(`https://admin.themecalc.com/edit.html${id}`);
+    return;
   } else if (req.path === '/detail' || req.path === '/detail.html') {
     htmlFile = 'detail.html';
   } else if (req.path === '/login' || req.path === '/login.html') {
     htmlFile = 'login.html';
+  } else if (req.path === '/themes' || req.path === '/themes.html') {
+    htmlFile = 'themes.html';
   }
   
   res.sendFile(path.join(__dirname, htmlFile));

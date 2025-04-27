@@ -38,96 +38,14 @@
             
             <nav class="sidebar-nav">
                 <ul>
-                    <li class="active"><a href="index.html"><span class="icon">📊</span> 仪表盘</a></li>
-                    <li><a href="themes.html"><span class="icon">🎨</span> 主题管理</a></li>
-                    <li><a href="users.html"><span class="icon">👥</span> 用户管理</a></li>
-                    <li><a href="settings.html"><span class="icon">⚙️</span> 系统设置</a></li>
+                    <li><a href="index.html"><span class="icon">🎨</span> 主题管理</a></li>
                 </ul>
             </nav>
             
             <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <span class="avatar-placeholder">👤</span>
-                    </div>
-                    <div class="user-details">
-                        <span id="userName" class="user-name">加载中...</span>
-                        <span id="userRole" class="user-role">管理员</span>
-                    </div>
-                </div>
-                
                 <button id="logoutBtn" class="logout-btn">退出登录</button>
             </div>
         </aside>
-        
-        <!-- 主内容区 -->
-        <main class="main-content">
-            <header class="main-header">
-                <button class="menu-toggle">☰</button>
-                <h2>仪表盘</h2>
-                <div class="header-actions">
-                    <div class="date-display" id="currentDate"></div>
-                </div>
-            </header>
-            
-            <div class="dashboard">
-                <!-- 摘要卡片 -->
-                <section class="dashboard-summary">
-                    <div class="summary-card">
-                        <div class="summary-icon">🎨</div>
-                        <div class="summary-details">
-                            <h3>总主题数</h3>
-                            <div class="summary-value" id="totalThemes">--</div>
-                        </div>
-                    </div>
-                    
-                    <div class="summary-card">
-                        <div class="summary-icon">👥</div>
-                        <div class="summary-details">
-                            <h3>用户数量</h3>
-                            <div class="summary-value" id="totalUsers">--</div>
-                        </div>
-                    </div>
-                    
-                    <div class="summary-card">
-                        <div class="summary-icon">⬇️</div>
-                        <div class="summary-details">
-                            <h3>本月下载</h3>
-                            <div class="summary-value" id="monthlyDownloads">--</div>
-                        </div>
-                    </div>
-                    
-                    <div class="summary-card">
-                        <div class="summary-icon">💰</div>
-                        <div class="summary-details">
-                            <h3>本月收入</h3>
-                            <div class="summary-value" id="monthlyRevenue">--</div>
-                        </div>
-                    </div>
-                </section>
-                
-                <!-- 图表区域 -->
-                <section class="dashboard-charts">
-                    <div class="chart-container">
-                        <h3>下载趋势</h3>
-                        <canvas id="downloadsChart"></canvas>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <h3>主题分类</h3>
-                        <canvas id="categoriesChart"></canvas>
-                    </div>
-                </section>
-                
-                <!-- 最近活动 -->
-                <section class="recent-activities">
-                    <h3>最近活动</h3>
-                    <div class="activities-list" id="recentActivities">
-                        <div class="loading-placeholder">加载活动记录中...</div>
-                    </div>
-                </section>
-            </div>
-        </main>
     </div>
     
     <!-- 脚本 -->

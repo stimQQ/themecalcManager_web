@@ -142,7 +142,7 @@ const authAPI = (function() {
             
             // 尝试请求用户资料以验证令牌有效性
             console.log('验证令牌有效性...');
-            const verifyUrl = `${WWW_BASE_URL}/user/profile`;
+            const verifyUrl = `${WWW_BASE_URL}/skin?page=1&per_page=1`;
             
             const response = await fetch(verifyUrl, {
                 method: 'GET',

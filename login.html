@@ -327,7 +327,7 @@
              */
             function checkLoginStatus() {
                 // 尝试从本地存储获取token
-                const token = localStorage.getItem('authToken');
+                const token = localStorage.getItem('auth_token');
                 
                 if (token) {
                     console.log('发现存储的令牌，验证其有效性...');
@@ -345,7 +345,7 @@
                                 console.log('令牌无效或已过期');
                                 utils.hideLoading();
                                 // 清除无效令牌
-                                localStorage.removeItem('authToken');
+                                localStorage.removeItem('auth_token');
                             }
                         })
                         .catch(error => {
@@ -354,7 +354,7 @@
                             // 显示错误提示
                             utils.showMessage('error', '验证登录状态时出错，请重新登录');
                             // 清除可能无效的令牌
-                            localStorage.removeItem('authToken');
+                            localStorage.removeItem('auth_token');
                         });
                 } else {
                     console.log('未找到存储的令牌');
